@@ -25,22 +25,7 @@ class User {
       },
       createdAt: { type: Date, default: Date.now }
     });
-
-    // // Kullanıcı kaydedilmeden önce şifreyi hashle
-    // schema.pre('save', async function (next) {
-    //   if (!this.isModified('password')) return next();
   
-    //   // Şifre zaten hashlenmiş mi, kontrol et
-    //   if (this.password.startsWith("$2a$10$")) {
-    //       return next(); // Eğer şifre zaten hashlenmişse tekrar hashleme
-    //   }
-  
-    //   const salt = await bcrypt.genSalt(10);
-    //   this.password = await bcrypt.hash(this.password, salt);
-    //   next();
-    // });
-  
-
     return schema;
   }
 

@@ -39,3 +39,6 @@ app.use('/api/auth',authrouter);
 app.listen(PORT,()=>{
     console.log('Server is running on port',PORT);
 })
+
+
+

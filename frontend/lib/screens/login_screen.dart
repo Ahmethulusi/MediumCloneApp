@@ -1,9 +1,8 @@
-import 'package:firstflutterproject/screens/profile_detail_screen.dart';
+// import 'package:firstflutterproject/screens/profile_detail_screen.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'register_screen.dart'; // Kayıt ekranına yönlendirmek için
-import './profile_screen.dart'
-    as profile; // Başarılı giriş sonrası yönlendirme için
+// import './profile_screen.dart'as profile; // Başarılı giriş sonrası yönlendirme için
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -21,6 +20,10 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _errorMessage;
 
   Future<void> _login() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     bool success = await AuthService().login(
       _emailController.text.trim(),
       _passwordController.text.trim(),
@@ -28,14 +31,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', true); // Kullanıcı giriş yaptı
-      // HomeScreen'e yönlendirmek yerine, sadece hesap sekmesini güncelle
-      widget.updateLoginStatus();
+      await prefs.setBool('isLoggedIn', true);
+
+      widget
+          .updateLoginStatus(); // Giriş başarılı olduğunda HomeScreen’i güncelle
     } else {
       setState(() {
         _errorMessage = "Giriş başarısız! Lütfen bilgilerinizi kontrol edin.";
       });
     }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
