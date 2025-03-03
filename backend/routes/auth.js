@@ -5,45 +5,29 @@ const bcrypt = require('bcryptjs');
 
 const router = express.Router();
 router.post('/login', async (req, res) => {
-    try {
-        const { email, password } = req.body;
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
 
-        // Kullanıcıyı MongoDB'de bul
-        const user = await User.findOne({ email });
-        if (!user) {
-            console.log("Kullanıcı bulunamadı!");
-            return res.status(400).json({ error: "Geçersiz e-posta adresi" });
-        }
-
-        // MongoDB'deki şifreyi ve girilen şifreyi konsola yazdır
-        console.log("Veritabanındaki Hashlenmiş Şifre:", user.password);
-        console.log("Girilen Şifre:", password);
-
-        // Şifreyi doğrula
-        const isMatch = await bcrypt.compare(password, user.password);
-        console.log("Karşılaştırma Sonucu:", isMatch);
-
-        if (!isMatch) {
-            return res.status(400).json({ error: "Geçersiz şifre" });
-        }
-
-        // JWT Token oluştur
-        const payload = {
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role
-        };
-
-        const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1h" });
-
-        res.status(200);
-        res.json({ message: "Giriş başarılı", token });
-
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    if (!user) {
+        return res.status(400).json({ message: 'Geçersiz kimlik bilgileri' });
     }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+        return res.status(400).json({ message: 'Geçersiz kimlik bilgileri' });
+    }
+
+    const token = jwt.sign({ id: user.id }, 'SECRET_KEY', { expiresIn: '1h' });
+
+    res.json({
+        userId: user.id,  // 🚀 userId döndüğümüzden emin ol!
+        name: user.name,
+        email: user.email,
+        profileImage: user.profileImage,
+        token
+    });
 });
+
 
 
 

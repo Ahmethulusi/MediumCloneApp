@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart'; // HomeScreen dosyanızı içe aktarın
+import 'package:provider/provider.dart';
+import 'providers/user_provider.dart';
+import 'screens/login_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(
+    MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => UserProvider())],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Article App',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home:
-          HomeScreen(), // Uygulamanın ana ekranı olarak HomeScreen'i ayarlayın
-    );
+    return MaterialApp(debugShowCheckedModeBanner: false, home: LoginScreen());
   }
 }

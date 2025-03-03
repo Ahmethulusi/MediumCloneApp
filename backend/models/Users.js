@@ -7,7 +7,7 @@ class User {
     this.name = name;
     this.email = email;
     this.password = password;
-    this.profileImage = profileImage || "";
+    this.profileImage = profileImage || "https://via.placeholder.com/150";
     this.role = role;
     this.createdAt = new Date();
   }

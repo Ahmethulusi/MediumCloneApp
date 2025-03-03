@@ -1,14 +1,12 @@
-// import 'package:firstflutterproject/screens/profile_detail_screen.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import 'register_screen.dart'; // Kayıt ekranına yönlendirmek için
-// import './profile_screen.dart'as profile; // Başarılı giriş sonrası yönlendirme için
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import '../providers/user_provider.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  final VoidCallback updateLoginStatus;
-
-  LoginScreen({required this.updateLoginStatus});
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -17,28 +15,57 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
-  String? _errorMessage;
-
   Future<void> _login() async {
     setState(() {
       _isLoading = true;
     });
 
-    bool success = await AuthService().login(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:8000/api/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': _emailController.text.trim(),
+          'password': _passwordController.text.trim(),
+        }),
+      );
 
-    if (success) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', true);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
 
-      widget
-          .updateLoginStatus(); // Giriş başarılı olduğunda HomeScreen’i güncelle
-    } else {
-      setState(() {
-        _errorMessage = "Giriş başarısız! Lütfen bilgilerinizi kontrol edin.";
-      });
+        // Kullanıcı ID kontrolü
+        String userId =
+            data.containsKey('userId') && data['userId'] != null
+                ? data['userId'].toString()
+                : '';
+
+        if (userId.isEmpty) {
+          print("🚨 HATA: API userId göndermedi!");
+          setState(() {
+            _isLoading = false;
+          });
+          return;
+        }
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userId', userId);
+
+        print("✅ Kullanıcı giriş yaptı, ID: $userId");
+
+        await Provider.of<UserProvider>(
+          context,
+          listen: false,
+        ).fetchUserData(userId);
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen(userId: userId)),
+        );
+      } else {
+        print("❌ Giriş başarısız: ${response.body}");
+      }
+    } catch (error) {
+      print("🚨 Hata oluştu: $error");
     }
 
     setState(() {
@@ -51,17 +78,12 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(title: Text("Giriş Yap")),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 70.0),
+        padding: EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(child: Text("Giriş Yap", style: TextStyle(fontSize: 30))),
-
-            SizedBox(height: 30),
             TextField(
               controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(labelText: "E-posta"),
             ),
             SizedBox(height: 10),
@@ -70,42 +92,10 @@ class _LoginScreenState extends State<LoginScreen> {
               obscureText: true,
               decoration: InputDecoration(labelText: "Şifre"),
             ),
-            SizedBox(height: 10),
-            if (_errorMessage != null)
-              Text(
-                _errorMessage!,
-                style: TextStyle(color: Colors.red),
-                textAlign: TextAlign.center,
-              ),
-            SizedBox(height: 10),
+            SizedBox(height: 20),
             _isLoading
-                ? Center(child: CircularProgressIndicator())
-                : Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 50.0,
-                  ), // Sağdan ve soldan boşluk ekler
-                  child: ElevatedButton(
-                    onPressed: _login,
-                    child: Text('Giriş Yap'),
-                  ),
-                ),
-            SizedBox(height: 10),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 50.0),
-              child: TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) =>
-                              RegisterScreen(onLogin: widget.updateLoginStatus),
-                    ),
-                  );
-                },
-                child: Text("Hesabın yok mu? Kayıt ol"),
-              ),
-            ),
+                ? CircularProgressIndicator()
+                : ElevatedButton(onPressed: _login, child: Text("Giriş Yap")),
           ],
         ),
       ),
