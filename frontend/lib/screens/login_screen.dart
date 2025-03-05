@@ -20,52 +20,43 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    try {
-      final response = await http.post(
-        Uri.parse('http://localhost:8000/api/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': _emailController.text.trim(),
-          'password': _passwordController.text.trim(),
-        }),
-      );
+    final response = await http.post(
+      Uri.parse('http://localhost:8000/api/auth/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': _emailController.text.trim(),
+        'password': _passwordController.text.trim(),
+      }),
+    );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      String userId =
+          data.containsKey('userId') && data['userId'] != null
+              ? data['userId'].toString()
+              : '';
 
-        // Kullanıcı ID kontrolü
-        String userId =
-            data.containsKey('userId') && data['userId'] != null
-                ? data['userId'].toString()
-                : '';
-
-        if (userId.isEmpty) {
-          print("🚨 HATA: API userId göndermedi!");
-          setState(() {
-            _isLoading = false;
-          });
-          return;
-        }
-
+      if (userId.isNotEmpty) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('userId', userId);
 
-        print("✅ Kullanıcı giriş yaptı, ID: $userId");
+        // Oturum açılma zamanını kaydet
+        await prefs.setInt(
+          'sessionStartTime',
+          DateTime.now().millisecondsSinceEpoch,
+        );
 
-        await Provider.of<UserProvider>(
-          context,
-          listen: false,
-        ).fetchUserData(userId);
+        Provider.of<UserProvider>(context, listen: false).fetchUserData(userId);
 
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomeScreen(userId: userId)),
         );
       } else {
-        print("❌ Giriş başarısız: ${response.body}");
+        print("🚨 API userId göndermedi!");
       }
-    } catch (error) {
-      print("🚨 Hata oluştu: $error");
+    } else {
+      print("❌ Giriş başarısız: ${response.body}");
     }
 
     setState(() {

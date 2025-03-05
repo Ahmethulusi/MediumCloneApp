@@ -28,10 +28,10 @@ class UserProvider with ChangeNotifier {
                 ? data['profileImage'].toString()
                 : "https://via.placeholder.com/150";
 
-        print("🎯 Kullanıcı verisi güncellendi: $name, $email, $profileImage");
+        print("Kullanıcı verisi güncellendi: $name, $email, $profileImage");
       }
     } catch (error) {
-      print("🚨 Kullanıcı verisi alınamadı: $error");
+      print("Kullanıcı verisi alınamadı: $error");
     }
 
     isLoading = false;
