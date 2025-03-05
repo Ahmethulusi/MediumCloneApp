@@ -78,7 +78,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               obscureText: true,
               decoration: InputDecoration(labelText: "Şifre"),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 15),
             _isLoading
                 ? CircularProgressIndicator()
                 : ElevatedButton(onPressed: _register, child: Text("Kayıt Ol")),
