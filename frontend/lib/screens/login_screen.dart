@@ -4,7 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../providers/user_provider.dart';
+import '../services/auth_service.dart';
+import 'forgot_password.dart';
 import 'home_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -15,48 +18,36 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+
   Future<void> _login() async {
     setState(() {
       _isLoading = true;
     });
 
-    final response = await http.post(
-      Uri.parse('http://localhost:8000/api/auth/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'email': _emailController.text.trim(),
-        'password': _passwordController.text.trim(),
-      }),
+    bool success = await AuthService().login(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
     );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      String userId =
-          data.containsKey('userId') && data['userId'] != null
-              ? data['userId'].toString()
-              : '';
+    if (success) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userId = prefs.getString("userId");
 
-      if (userId.isNotEmpty) {
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('userId', userId);
+      if (userId != null) {
+        Provider.of<UserProvider>(context, listen: false).fetchUserData(userId);
 
         // Oturum açılma zamanını kaydet
         await prefs.setInt(
           'sessionStartTime',
           DateTime.now().millisecondsSinceEpoch,
         );
-
-        Provider.of<UserProvider>(context, listen: false).fetchUserData(userId);
-
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomeScreen(userId: userId)),
         );
-      } else {
-        print("🚨 API userId göndermedi!");
       }
     } else {
-      print("❌ Giriş başarısız: ${response.body}");
+      print("❌ Giriş başarısız!");
     }
 
     setState(() {
@@ -87,6 +78,27 @@ class _LoginScreenState extends State<LoginScreen> {
             _isLoading
                 ? CircularProgressIndicator()
                 : ElevatedButton(onPressed: _login, child: Text("Giriş Yap")),
+            SizedBox(height: 10),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => RegisterScreen()),
+                );
+              },
+              child: Text("Hesabın yok mu? Kayıt ol"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ForgotPasswordScreen(),
+                  ),
+                );
+              },
+              child: Text("Şifremi Unuttum"),
+            ),
           ],
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../providers/user_provider.dart';
+import '../services/auth_service.dart';
 import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -22,31 +23,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _isLoading = true;
     });
 
-    final response = await http.post(
-      Uri.parse('http://localhost:8000/api/auth/register'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'name': _nameController.text.trim(),
-        'email': _emailController.text.trim(),
-        'password': _passwordController.text.trim(),
-      }),
+    bool success = await AuthService().register(
+      _nameController.text.trim(),
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
     );
 
-    if (response.statusCode == 201) {
-      final data = json.decode(response.body);
-      String userId = data['userId'];
-
+    if (success) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userId', userId);
+      String? userId = prefs.getString("userId");
 
-      Provider.of<UserProvider>(context, listen: false).fetchUserData(userId);
+      if (userId != null) {
+        Provider.of<UserProvider>(context, listen: false).fetchUserData(userId);
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen(userId: userId)),
-      );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen(userId: userId)),
+        );
+      }
     } else {
-      print("Kayıt başarısız: ${response.body}");
+      print("❌ Kayıt başarısız!");
     }
 
     setState(() {

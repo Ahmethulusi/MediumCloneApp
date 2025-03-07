@@ -18,25 +18,56 @@ class AuthService {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString("token", data["token"]);
       await prefs.setString("userId", data["userId"]);
+      await prefs.setString("role", data["role"]);
       return true;
     }
     return false;
   }
 
-  Future<bool> register(String name, String email, String password) async {
+  Future<bool> register(
+    String name,
+    String email,
+    String password, {
+    String role = "author",
+  }) async {
     final response = await http.post(
       Uri.parse("$baseUrl/register"),
       headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"name": name, "email": email, "password": password}),
+      body: jsonEncode({
+        "name": name,
+        "email": email,
+        "password": password,
+        "role": role,
+      }),
     );
 
     if (response.statusCode == 201) {
       final data = json.decode(response.body);
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString("token", data["token"]);
       await prefs.setString("userId", data["userId"]);
+      await prefs.setString("role", data["role"]);
       return true;
     }
     return false;
+  }
+
+  Future<bool> forgotPassword(String email) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/forgot-password"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"email": email}),
+    );
+
+    return response.statusCode == 200;
+  }
+
+  Future<bool> resetPassword(String token, String newPassword) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/reset-password/$token"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"password": newPassword}),
+    );
+
+    return response.statusCode == 200;
   }
 }

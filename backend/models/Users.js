@@ -20,8 +20,8 @@ class User {
       profileImage: { type: String, default: "" },
       role: { 
         type: String, 
-        enum: ["visitor", "author", "editor", "admin"], 
-        default: "visitor"
+        enum: ["author", "editor", "admin"], 
+        default: "author"
       },
       createdAt: { type: Date, default: Date.now }
     });

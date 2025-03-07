@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'admin_panel.dart';
+import 'login_screen.dart';
 import 'library_screen.dart';
 import 'profile_screen.dart';
 
@@ -14,6 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String? userRole;
   int _selectedIndex = 0;
 
   List<Widget> _getScreens() {
@@ -26,9 +28,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (userRole == "admin" && index == 4) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => AdminPanelScreen()),
+      );
+    } else {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
   void _checkSession() async {
@@ -56,6 +65,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _checkSession(); // Sayfa yüklendiğinde oturumu kontrol et
+    _getUserRole();
+  }
+
+  Future<void> _getUserRole() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userRole = prefs.getString("role");
+    });
   }
 
   @override
@@ -73,6 +90,11 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.search), label: ""),
           BottomNavigationBarItem(icon: Icon(Icons.bookmark_border), label: ""),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: ""),
+          if (userRole == "admin")
+            BottomNavigationBarItem(
+              icon: Icon(Icons.admin_panel_settings),
+              label: "",
+            ),
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
