@@ -58,7 +58,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             if (_message != null)
               Padding(
                 padding: EdgeInsets.only(top: 10),
-                child: Text(_message!, style: TextStyle(color: Colors.red)),
+                child: Text(
+                  _message!,
+                  style: TextStyle(
+                    color: const Color.fromARGB(255, 76, 244, 54),
+                  ),
+                ),
               ),
           ],
         ),

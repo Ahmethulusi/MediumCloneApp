@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/user_provider.dart';
 import '../components/edit_profile.dart';
 import '../components/new_story.dart';
+import '../components/profile_image_picker.dart'; // 📌 Yeni bileşeni içe aktar
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -17,14 +18,15 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   @override
+  @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => Provider.of<UserProvider>(
+    Future.microtask(() {
+      Provider.of<UserProvider>(
         context,
         listen: false,
-      ).fetchUserData(widget.userId),
-    );
+      ).fetchUserData(widget.userId);
+    });
   }
 
   @override
@@ -63,12 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundImage: NetworkImage(
-                          userProvider.profileImage,
-                        ),
-                      ),
+                      ProfileImagePicker(userId: widget.userId),
                       SizedBox(height: 10),
                       Text(
                         userProvider.name,

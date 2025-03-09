@@ -2,17 +2,28 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+
 const bodyParser = require('body-parser');
+const path = require('path');
 
 const userRoutes = require('./routes/users');
 const articleRoutes = require('./Routes/articles');
 const categoryRoutes = require('./routes/categories');
 const authrouter = require('./routes/auth');
 
+
+
 const app = express();
+
 app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/public', express.static('public'));
+
+
+
+
 
 const PORT = process.env.PORT || 8000;
 

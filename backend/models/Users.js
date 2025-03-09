@@ -1,13 +1,14 @@
-
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 class User {
-  constructor(name, email, profileImage,password, role = "visitor") {
+  constructor(name, email, profileImage, password,role,bio,jobTitle) {
     this.name = name;
+    this.bio = bio;
+    this.jobTitle = jobTitle
     this.email = email;
     this.password = password;
-    this.profileImage = profileImage || "https://via.placeholder.com/150";
+    this.profileImage = profileImage || "";
     this.role = role;
     this.createdAt = new Date();
   }
@@ -20,10 +21,14 @@ class User {
       profileImage: { type: String, default: "" },
       role: { 
         type: String, 
-        enum: ["author", "editor", "admin"], 
+        enum: [ "author", "editor", "admin"], 
         default: "author"
       },
-      createdAt: { type: Date, default: Date.now }
+      createdAt: { type: Date, default: Date.now },
+      resetPasswordToken: { type: String, default: null },  // Şifre sıfırlama tokeni
+      resetPasswordExpires: { type: Date, default: null },    //  Tokenin süresi
+      jobTitle: { type: String, required: false },
+      bio: { type: String, required: false },
     });
   
     return schema;

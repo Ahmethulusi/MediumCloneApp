@@ -35,12 +35,9 @@ router.post('/login', async (req, res) => {
 });
 
 
-
-
-
 router.post('/register',async(req,res)=>{
     try{
-        const {name,email,password,profileImage,role} = req.body;
+        const {name,email,password,role} = req.body;
 
         const existingUser = await User.findOne({email});
         if(existingUser) return res.status(400).json({message:"Bu email adresi zaten kullaniliyor"});
@@ -52,8 +49,8 @@ router.post('/register',async(req,res)=>{
             name,
             email,
             password: hashedPassword,
-            profileImage:profileImage || "",
-            role: role || "author"
+            profileImage:"",
+            role: role || "author",
         });
 
         await newUser.save();
@@ -73,41 +70,49 @@ router.post('/forgot-password', async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'Bu e-posta adresiyle kayıtlı kullanıcı bulunamadı.' });
         }
-
-        // Şifre sıfırlama tokeni oluştur
+       
+        // Şifre sıfırlama tokeni oluştur ve veritabanına kaydet
         const resetToken = crypto.randomBytes(20).toString('hex');
         user.resetPasswordToken = resetToken;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 saat geçerli
 
-        await user.save();
+        await user.save(); // ✅ Token veritabanına kaydediliyor
 
-        // E-posta gönderme
-        const transporter = nodemailer.createTransport({
-            service: 'Gmail',
-            auth: {
-                user: 'ahmet4112004@gmail.com',
-                pass: 'zyzl vfkd ihez gcpu'
+        console.log("📩 Kaydedilen Token:", resetToken); // ✅ Debug için terminalde yazdır
+
+        const transporter = nodemailer.createTransport({ 
+            service:'Gmail',
+            auth:{
+                user:'ahmet4112004@gmail.com',
+                pass:process.env.MAIL_APP_PASSWORD
             }
-        });
+        })
 
         const mailOptions = {
+            title:'Flutter Project',
+            from:'ahmet4112004@gmail.com',
             to: user.email,
-            subject: 'Şifre Sıfırlama Talebi',
-            text: `Şifrenizi sıfırlamak için aşağıdaki bağlantıya tıklayın:\n\n http://localhost:8000/api/auth/reset-password/${resetToken}`
+            subject: 'Şifre Sıfırlama',
+            html: `
+                <p>Şifrenizi sıfırlamak için aşağıya yeni şifrenizi girin ve "Şifreyi Güncelle" butonuna basın:</p>
+                <form action="http://localhost:8000/api/auth/reset-password/${resetToken}" method="POST">
+                    <input type="password" name="password" placeholder="Yeni Şifre" required style="padding: 8px; margin-right: 8px;"/>
+                    <button type="submit" style="background-color: blue; color: white; padding: 8px; border: none;">Şifreyi Güncelle</button>
+                </form>
+                <p>Bağlantıya tıkladıktan sonra yeni şifrenizi belirleyebilirsiniz.</p>
+            `
         };
+ 
+        await transporter.sendMail(mailOptions);
 
-        transporter.sendMail(mailOptions, (err, response) => {
-            if (err) {
-                console.error('E-posta gönderme hatası:', err);
-                return res.status(500).json({ message: 'E-posta gönderme başarısız' });
-            }
-            res.json({ message: 'Şifre sıfırlama bağlantısı e-posta ile gönderildi.' });
-        });
+        return res.json({ message: 'Şifre sıfırlama bağlantısı e-posta ile gönderildi.' });
 
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error("❌ Forgot Password Hatası:", error);
+        return res.status(500).json({ error: error.message });
     }
 });
+
 
 router.get('/reset-password/:token', async (req, res) => {
     try {
@@ -127,6 +132,57 @@ router.get('/reset-password/:token', async (req, res) => {
     }
 });
 
+router.post('/reset-password/:token', async (req, res) => {
+    try {
+        const user = await User.findOne({
+            resetPasswordToken: req.params.token,
+            resetPasswordExpires: { $gt: Date.now() } // Token süresi dolmamış olmalı
+        });
+
+        if (!user) {
+            return res.send('<h1>Geçersiz veya süresi dolmuş token</h1>');
+        }
+
+        // Yeni şifreyi kontrol et
+        if (!req.body.password) {
+            console.log(req.body);
+            return res.status(400).send('<h3>❌ Lütfen geçerli bir şifre girin.</h3>');
+
+        }
+        // Yeni şifreyi hashle
+        const newPassword = await bcrypt.hash(req.body.password, 10);
+        
+        user.password = newPassword;
+        user.resetPasswordToken = null;
+        user.resetPasswordExpires = null;
+        console.log("New password", newPassword);
+        await user.save();
+
+        res.send('<h1>✅ Şifreniz başarıyla güncellendi! Artık giriş yapabilirsiniz.</h1>');
+    } catch (error) {
+        res.status(500).send('<h3>❌ Bir hata oluştu. Lütfen tekrar deneyin.</h3>');
+        console.log("Hata", error);
+    }
+});
+
+
+router.get('/verify-account/:token', async (req, res) => {
+    try {
+        const user = await User.findOne({
+            resetPasswordToken: req.params.token,
+            resetPasswordExpires: { $gt: Date.now() } // Token süresi dolmamış olmalı
+        });
+
+        if (!user) {
+            return res.status(400).send('<h1>Geçersiz veya süresi dolmuş token</h1>');
+        }
+
+        // Token geçerliyse sadece mesaj göster
+        res.send('<h1>Hesabınız doğrulandı. Lütfen uygulamaya dönün.</h1>');
+    } catch (error) {
+        res.status(500).send('<h1>Sunucu hatası</h1>');
+    }
+});
 
 
 module.exports = router;

@@ -41,6 +41,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (userId != null) {
+      Provider.of<UserProvider>(context, listen: false).fetchUserData(userId!);
+    }
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: userId != null ? HomeScreen(userId: userId!) : LoginScreen(),

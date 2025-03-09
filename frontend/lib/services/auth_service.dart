@@ -52,13 +52,25 @@ class AuthService {
   }
 
   Future<bool> forgotPassword(String email) async {
-    final response = await http.post(
-      Uri.parse("$baseUrl/forgot-password"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"email": email}),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/forgot-password"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"email": email}),
+      );
 
-    return response.statusCode == 200;
+      print("📩 Forgot Password API Yanıtı: ${response.statusCode}");
+      print("📝 Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print("❌ Forgot Password API Hatası: $e");
+      return false;
+    }
   }
 
   Future<bool> resetPassword(String token, String newPassword) async {

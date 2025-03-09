@@ -12,21 +12,45 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   String? _message;
 
   Future<void> _sendResetEmail() async {
+    if (_emailController.text.trim().isEmpty) {
+      setState(() {
+        _message = "⚠️ Lütfen e-posta adresinizi girin!";
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
+      _message = null;
     });
 
-    bool success = await AuthService().forgotPassword(
-      _emailController.text.trim(),
-    );
+    try {
+      bool success = await AuthService().forgotPassword(
+        _emailController.text.trim(),
+      );
 
-    setState(() {
-      _isLoading = false;
-      _message =
-          success
-              ? "Şifre sıfırlama bağlantısı gönderildi!"
-              : "E-posta bulunamadı.";
-    });
+      // Eğer widget kapanmışsa state değiştirme
+      if (!mounted) return;
+
+      print("📩 Şifre sıfırlama isteği gönderildi mi? $success");
+
+      setState(() {
+        _isLoading = false;
+        _message =
+            success
+                ? "✅ Şifre sıfırlama bağlantısı e-posta adresinize gönderildi!"
+                : "❌ Bu e-posta adresine ait bir hesap bulunamadı.";
+      });
+    } catch (e) {
+      print("❌ Bir hata oluştu: $e");
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+        _message = "❌ Bir hata oluştu, tekrar deneyin.";
+      });
+    }
   }
 
   @override
@@ -49,10 +73,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   onPressed: _sendResetEmail,
                   child: Text("Şifreyi Sıfırla"),
                 ),
+            SizedBox(height: 10),
             if (_message != null)
               Padding(
                 padding: EdgeInsets.only(top: 10),
-                child: Text(_message!, style: TextStyle(color: Colors.red)),
+                child: Text(
+                  _message!,
+                  style: TextStyle(
+                    color: _message!.contains("✅") ? Colors.green : Colors.red,
+                  ),
+                ),
               ),
           ],
         ),

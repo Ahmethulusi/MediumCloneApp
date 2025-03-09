@@ -1,16 +1,24 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class UserProvider with ChangeNotifier {
-  String name = "";
-  String email = "";
-  String profileImage = "https://via.placeholder.com/150";
-  bool isLoading = true;
+  String _name = "";
+  String _email = "";
+  String _profileImage = "";
+
+  String get name => _name;
+  String get email => _email;
+  String get profileImage => _profileImage;
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
 
   Future<void> fetchUserData(String userId) async {
-    isLoading = true;
-    notifyListeners(); // UI'yi güncelle
+    print("📩 Kullanıcı verileri alınıyor..."); // Debugging
+    _isLoading = true;
+    notifyListeners();
 
     try {
       final response = await http.get(
@@ -20,21 +28,26 @@ class UserProvider with ChangeNotifier {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        name = data['name'] ?? "Bilinmeyen Kullanıcı";
-        email = data['email'] ?? "Bilinmeyen Email";
-        profileImage =
-            data['profileImage'] != null &&
-                    data['profileImage'].toString().isNotEmpty
-                ? data['profileImage'].toString()
-                : "https://via.placeholder.com/150";
+        _name = data['name'];
+        _email = data['email'];
+        _profileImage = data['profileImage'] ?? "";
 
-        print("Kullanıcı verisi güncellendi: $name, $email, $profileImage");
+        print("✅ Kullanıcı verisi güncellendi: $_profileImage"); // Debugging
+
+        notifyListeners();
+      } else {
+        print("❌ Kullanıcı verisi alınamadı: ${response.body}");
       }
-    } catch (error) {
-      print("Kullanıcı verisi alınamadı: $error");
+    } catch (e) {
+      print("🚨 Hata oluştu: $e");
     }
 
-    isLoading = false;
-    notifyListeners(); // Güncellemeleri bildir
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  void updateProfileImage(String newImageUrl) {
+    _profileImage = newImageUrl;
+    notifyListeners();
   }
 }
