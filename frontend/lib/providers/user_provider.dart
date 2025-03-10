@@ -7,10 +7,14 @@ class UserProvider with ChangeNotifier {
   String _name = "";
   String _email = "";
   String _profileImage = "";
+  String _jobTitle = "";
+  String _bio = "";
 
   String get name => _name;
   String get email => _email;
   String get profileImage => _profileImage;
+  String get jobTitle => _jobTitle;
+  String get bio => _bio;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -31,6 +35,8 @@ class UserProvider with ChangeNotifier {
         _name = data['name'];
         _email = data['email'];
         _profileImage = data['profileImage'] ?? "";
+        _jobTitle = data['jobTitle'] ?? "";
+        _bio = data['bio'] ?? "";
 
         print("✅ Kullanıcı verisi güncellendi: $_profileImage"); // Debugging
 

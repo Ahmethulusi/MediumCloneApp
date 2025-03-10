@@ -86,10 +86,11 @@ class _HomeScreenState extends State<HomeScreen> {
         showUnselectedLabels: false,
         type: BottomNavigationBarType.fixed,
         items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.bookmark_border), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: ""),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
+          BottomNavigationBarItem(icon: Icon(Icons.library_books), label: ""),
+          BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: ""),
+          BottomNavigationBarItem(icon: Icon(Icons.account_box), label: ""),
+
           if (userRole == "admin")
             BottomNavigationBarItem(
               icon: Icon(Icons.admin_panel_settings),

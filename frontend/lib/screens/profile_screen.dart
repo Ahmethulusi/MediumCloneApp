@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/screens/login_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/user_provider.dart';
 import '../components/edit_profile.dart';
+import 'login_screen.dart';
 import '../components/new_story.dart';
-import '../components/profile_image_picker.dart'; // 📌 Yeni bileşeni içe aktar
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -17,7 +16,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  @override
   @override
   void initState() {
     super.initState();
@@ -65,7 +63,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      ProfileImagePicker(userId: widget.userId),
+                      // 📌 Profil Resmi Gösterme
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundImage:
+                            userProvider.profileImage.isNotEmpty
+                                ? NetworkImage(userProvider.profileImage)
+                                : AssetImage('assets/default_avatar.png')
+                                    as ImageProvider,
+                        onBackgroundImageError: (_, __) {
+                          print(
+                            "❌ Profil resmi yüklenemedi: ${userProvider.profileImage}",
+                          );
+                        },
+                      ),
                       SizedBox(height: 10),
                       Text(
                         userProvider.name,

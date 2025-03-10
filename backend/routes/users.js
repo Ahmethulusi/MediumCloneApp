@@ -46,21 +46,37 @@ router.get('/:id', async (req, res) => {
 });
 
 
-router.get("/editProfile/",async(req,res)=>{
-    const {email,name,profileImage,bio,jobTitle} = req.body;
-    try{
-        const user = await User.findById(userId);
-        if(!user){
-            return res.status(404).json({message:"Kullanıcı bulunamadı"});
+router.put('/update-profile/:userId', async (req, res) => {
+    try {
+        const { name, profileImage, jobTitle, bio } = req.body;
+
+        console.log("📩 Gelen güncelleme isteği:", req.body);
+
+        // Kullanıcıyı bul ve güncelle
+        const updatedUser = await User.findByIdAndUpdate(
+            req.params.userId,
+            {
+                name: name,
+                profileImage: profileImage,
+                jobTitle: jobTitle,
+                bio: bio
+            },
+            { new: true } // Güncellenmiş kullanıcıyı döndür
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'Kullanıcı bulunamadı!' });
         }
 
-
-
-        res.json(user);
-    }catch(error){
-        res.status(500).json({error:error.message});
+        console.log("✅ Kullanıcı başarıyla güncellendi:", updatedUser);
+        res.json(updatedUser);
+    } catch (error) {
+        console.error("🚨 Profil güncelleme hatası:", error);
+        res.status(500).json({ message: 'Sunucu hatası' });
     }
-})
+});
+
+
 
 router.post('/upload-profile-image', upload.single('profileImage'), async (req, res) => {
     try {
