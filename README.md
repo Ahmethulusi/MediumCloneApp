@@ -1,15 +1,50 @@
+# Yapılacaklar Listesi
 
-# Yapılacaklar listesi
-  -- Admin taraf
-      -- Makale Yönetimi (Admin içerikleri (makaleleri) düzenleyebilme,silme,onaylama,arama-filtreleme yetkisine sahip olacak)
-      -- Kullanıcı yönetimi (Kullanıcı Listesi,Kullanıcıların rolünü admin yapabilme, Kullanıcının hesabını silebilme/banlama/dondurma,Kullanıcı mesaj yollayabilme)
-      -- Raporlar ve Analitik Sayfası (Toplam Kullanıcı Sayfası,Toplam Makale Sayısı,En çok okunan makaleler,En aktif yazarlar,En çok okunan kategoriler,Günük/Aylık okunma Sayılarının Grafikler ile görselleştirme)
-      -- Şikayet ve Rapor Yönetimi (Şikayet edilen Makaleler & Yorumlar (Spam,Uygunsuz İçerik,Telif Hakkı İhlali,Kullanıcı şikayetleri sahte profiller,spam hesaplar)
-      -- Genel Ayarlamalar (Görünüm Ayarları (Tema Sistemi),Genel uygulama Ayarlamaları Site açıklaması gibi)
-  -- Yazar taraf
-      -- Kullanıcıların makale eklemeleri için detaylı bir text editör
-      -- Profilde kullanıcıların makalelerinin listesinde düzenleme seçenekleri 
-      -- Ana sayfa (Takip ettiğim kullanıcıların içeriklerinden oluşan bir akış)
-      -- Keşfet Sayfası (Takip Etmediğimiz kullanıcılarında dahil olduğu ve farklı kategorilerden seçim yapabileceğimiz trend olanların listeleneceği bir sayfa )
-      -- Bildirimlerim Sayfası (yorumlar,beğeniler)
-      
+## 🛠️ Admin Tarafı
+### 📄 Makale Yönetimi
+- Admin, içerikleri (makaleleri) düzenleyebilir, silebilir, onaylayabilir.
+- Makaleler üzerinde arama ve filtreleme yapabilir.
+
+### 👥 Kullanıcı Yönetimi
+- Kullanıcı listesi görüntüleme.
+- Kullanıcıların rolünü admin yapabilme.
+- Kullanıcı hesaplarını silebilme, banlama veya dondurma.
+- Kullanıcılara mesaj yollayabilme.
+
+### 📊 Raporlar ve Analitik Sayfası
+- Toplam kullanıcı sayısını görüntüleme.
+- Toplam makale sayısını görüntüleme.
+- En çok okunan makaleleri listeleme.
+- En aktif yazarları belirleme.
+- En çok okunan kategorileri listeleme.
+- Günlük/Aylık okunma sayılarını grafiklerle görselleştirme.
+
+### 🚨 Şikayet ve Rapor Yönetimi
+- Şikayet edilen makaleleri ve yorumları inceleme.
+- Şikayet türleri: **Spam, Uygunsuz İçerik, Telif Hakkı İhlali.**
+- Kullanıcı şikayetleri: **Sahte profiller, spam hesaplar.**
+
+### ⚙️ Genel Ayarlamalar
+- **Görünüm Ayarları:** Tema sistemi.
+- **Genel Uygulama Ayarları:** Site açıklaması gibi ayarlar.
+
+---
+
+## ✍️ Yazar Tarafı
+### 📝 Makale Yazma ve Yönetimi
+- Kullanıcıların makale eklemeleri için **detaylı bir metin editörü.**
+- Profil sayfasında kullanıcının **makaleler listesi** olacak.
+- Kullanıcı makalelerini düzenleyebilecek.
+
+### 🏠 Ana Sayfa
+- Takip edilen kullanıcıların içeriklerinden oluşan bir **akış**.
+
+### 🔍 Keşfet Sayfası
+- Takip edilmeyen kullanıcıların içeriklerine erişim.
+- Farklı kategorilerde seçim yapma.
+- **Trend olan makalelerin** listelenmesi.
+
+### 🔔 Bildirimlerim Sayfası
+- Yorumlar ve beğenileri gösteren bildirim paneli.
+
+📌 **Bu yapıyı GitHub README.md dosyamızda kullanacağız!** 🚀
