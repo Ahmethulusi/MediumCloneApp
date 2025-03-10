@@ -47,4 +47,4 @@
 ### 🔔 Bildirimlerim Sayfası
 - Yorumlar ve beğenileri gösteren bildirim paneli.
 
-📌 **Bu yapıyı GitHub README.md dosyamızda kullanacağız!** 🚀
+
