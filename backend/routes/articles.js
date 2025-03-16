@@ -1,5 +1,5 @@
 const express = require('express');
-const Article = require('../Models/Article');
+const Article = require('../models/Article');
 const Category = require('../Models/Category'); // Dosya yolunu kontrol edin ve doğru olduğundan emin olun
 const authMiddleware = require('../middlewares/authmiddleware'); 
 
