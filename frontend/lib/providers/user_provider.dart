@@ -9,12 +9,16 @@ class UserProvider with ChangeNotifier {
   String _profileImage = "";
   String _jobTitle = "";
   String _bio = "";
+  List publicStories = [];
+  List draftStories = [];
 
   String get name => _name;
   String get email => _email;
   String get profileImage => _profileImage;
   String get jobTitle => _jobTitle;
   String get bio => _bio;
+  // List get publicStories => publicStories;
+  // List get draftStories => draftStories;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -50,6 +54,25 @@ class UserProvider with ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  Future<void> fetchUserStories(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://localhost:8000/api/users/stories/$userId'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        publicStories = data['publicStories'] ?? [];
+        draftStories = data['draftStories'] ?? [];
+        notifyListeners();
+      } else {
+        print("❌ Makale verisi alınamadı: ${response.body}");
+      }
+    } catch (e) {
+      print("🚨 Hata oluştu: $e");
+    }
   }
 
   void updateProfileImage(String newImageUrl) {
