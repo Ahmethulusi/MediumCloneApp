@@ -7,7 +7,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 
 const userRoutes = require('./routes/users');
-const articleRoutes = require('./Routes/articles');
+const articleRoutes = require('./routes/articles');
 const categoryRoutes = require('./routes/categories');
 const authrouter = require('./routes/auth');
 

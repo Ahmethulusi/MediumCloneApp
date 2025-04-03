@@ -5,6 +5,8 @@ import '../providers/user_provider.dart';
 import '../components/edit_profile.dart';
 import 'login_screen.dart';
 import '../components/new_story.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -18,12 +20,11 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
-    super.initState();
     Future.microtask(() {
       Provider.of<UserProvider>(
         context,
         listen: false,
-      ).fetchUserData(widget.userId);
+      ).fetchUserStories(widget.userId);
     });
   }
 
@@ -63,7 +64,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // 📌 Profil Resmi Gösterme
                       CircleAvatar(
                         radius: 50,
                         backgroundImage:
@@ -121,18 +121,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                       SizedBox(height: 20),
-                      TabBarViewSection(),
+                      TabBarViewSection(userId: widget.userId),
                     ],
                   ),
                 ),
               ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => NewStoryScreen()),
           );
+
+          if (result == 'refresh') {
+            Provider.of<UserProvider>(
+              context,
+              listen: false,
+            ).fetchUserStories(widget.userId);
+          }
         },
+
         backgroundColor: Colors.green,
         child: Icon(Icons.edit),
       ),
@@ -140,9 +148,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-class TabBarViewSection extends StatelessWidget {
+class TabBarViewSection extends StatefulWidget {
+  final String userId;
+
+  TabBarViewSection({required this.userId});
+
+  @override
+  _TabBarViewSectionState createState() => _TabBarViewSectionState();
+}
+
+class _TabBarViewSectionState extends State<TabBarViewSection> {
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserStories();
+  }
+
+  Future<void> _fetchUserStories() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    await Provider.of<UserProvider>(
+      context,
+      listen: false,
+    ).fetchUserStories(widget.userId);
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+
     return DefaultTabController(
       length: 3,
       child: Column(
@@ -157,10 +199,38 @@ class TabBarViewSection extends StatelessWidget {
             ],
           ),
           Container(
-            height: 200,
+            height: 300,
             child: TabBarView(
               children: [
-                Center(child: Text("No stories available")),
+                isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : userProvider.publicStories.isEmpty
+                    ? Center(child: Text("No published stories"))
+                    : ListView.builder(
+                      itemCount: userProvider.publicStories.length,
+                      itemBuilder: (context, index) {
+                        final story = userProvider.publicStories[index];
+                        return ListTile(
+                          title: Text(story['title'] ?? 'Başlık yok'),
+                          subtitle: Text(
+                            (() {
+                              final rawContent =
+                                  story['content']?.toString() ?? '';
+                              final plainText = rawContent.replaceAll(
+                                RegExp(r'<[^>]*>'),
+                                '',
+                              );
+                              return plainText.length > 50
+                                  ? plainText.substring(0, 50) + "..."
+                                  : plainText;
+                            })(),
+                            maxLines: 10,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        );
+                      },
+                    ),
+
                 Center(child: Text("No lists available")),
                 Center(child: Text("About the user")),
               ],

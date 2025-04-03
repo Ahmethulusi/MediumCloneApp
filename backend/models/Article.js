@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 
 class Article {
-  constructor(title, content, author, categories) {
+  constructor(title, content,status, author, categories) {
     this.title = title;
     this.content = content;
+    this.status = status;
     this.author = author;
     this.categories = categories || []; // Çoka-çok ilişki için kategori referansları
     this.likes = 0;
@@ -14,6 +15,11 @@ class Article {
     return new mongoose.Schema({
       title: { type: String, required: true },
       content: { type: String, required: true },
+      status: {
+        type: String,
+        enum: ['public', 'draft'],
+        default: 'draft'
+      },
       author: {
         _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         name: String,
