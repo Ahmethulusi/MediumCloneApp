@@ -1,6 +1,6 @@
 const express = require('express');
 const Article = require('../models/Article');
-const Users = require('../models/Users');
+const Users = require('../Models/Users');
 const Category = require('../Models/Category'); // Dosya yolunu kontrol edin ve doğru olduğundan emin olun
 const authMiddleware = require('../middlewares/authmiddleware'); 
 
@@ -51,6 +51,29 @@ router.get('/:userId', async (req, res) => {
   } catch (error) {
     console.error('Makale alma hatası:', error);
     res.status(500).json({ message: 'Sunucu hatası' });
+  }
+});
+
+// routes/articles.js
+router.get('/explore/random', async (req, res) => {
+  try {
+    const articles = await Article.aggregate([
+      { $match: { status: "public" } },
+      { $sample: { size: 10 } } // random 10 makale
+    ]);
+    res.json({ articles });
+  } catch (err) {
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+});
+
+router.get('/all', async (req, res) => {
+  try {
+    const articles = await Article.find({ status: 'public' }).sort({ createdAt: -1 });
+    res.json({ articles });
+  } catch (error) {
+    console.error("Makale alma hatası:", error);
+    res.status(500).json({ message: "Sunucu hatası" });
   }
 });
 

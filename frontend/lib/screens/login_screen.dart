@@ -8,6 +8,7 @@ import '../services/auth_service.dart';
 import 'forgot_password.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
+import 'admin_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -24,23 +25,39 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    bool success = await AuthService().login(
+    final userData = await AuthService().login(
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );
 
-    if (success) {
+    if (userData != null) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? userId = prefs.getString("userId");
+      String userId = userData['userId']; // veya '_id'
+      String role = userData['role']; // 👈 Rolü doğrudan al
 
-      if (userId != null) {
-        Provider.of<UserProvider>(context, listen: false).fetchUserData(userId);
+      // ✅ SharedPreferences'a kaydet
+      await prefs.setString('userId', userId);
+      await prefs.setString('role', role);
+      await prefs.setInt(
+        'sessionStartTime',
+        DateTime.now().millisecondsSinceEpoch,
+      );
 
-        // Oturum açılma zamanını kaydet
-        await prefs.setInt(
-          'sessionStartTime',
-          DateTime.now().millisecondsSinceEpoch,
+      // ✅ Provider ile kullanıcı verilerini çek
+      await Provider.of<UserProvider>(
+        context,
+        listen: false,
+      ).fetchUserData(userId);
+
+      // ✅ Rol kontrolü ve yönlendirme
+      if (role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AdminHomeScreen(userId: userId),
+          ),
         );
+      } else {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomeScreen(userId: userId)),

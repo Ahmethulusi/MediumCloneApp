@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/user_provider.dart';
 import '../components/edit_profile.dart';
 import 'login_screen.dart';
+import 'edit_story_screen.dart';
 import '../components/new_story.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -210,22 +211,54 @@ class _TabBarViewSectionState extends State<TabBarViewSection> {
                       itemCount: userProvider.publicStories.length,
                       itemBuilder: (context, index) {
                         final story = userProvider.publicStories[index];
-                        return ListTile(
-                          title: Text(story['title'] ?? 'Başlık yok'),
-                          subtitle: Text(
-                            (() {
-                              final rawContent =
-                                  story['content']?.toString() ?? '';
-                              final plainText = rawContent.replaceAll(
-                                RegExp(r'<[^>]*>'),
-                                '',
-                              );
-                              return plainText.length > 50
-                                  ? plainText.substring(0, 50) + "..."
-                                  : plainText;
-                            })(),
-                            maxLines: 10,
-                            overflow: TextOverflow.ellipsis,
+                        final rawContent = story['content']?.toString() ?? '';
+                        final plainText = rawContent.replaceAll(
+                          RegExp(r'<[^>]*>'),
+                          '',
+                        );
+
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) =>
+                                        EditStoryScreen(articleData: story),
+                              ),
+                            );
+                          },
+                          child: Card(
+                            elevation: 3,
+                            margin: EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    story['title'] ?? 'Başlık yok',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    plainText.length > 100
+                                        ? plainText.substring(0, 100) + "..."
+                                        : plainText,
+                                    style: TextStyle(color: Colors.grey[700]),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         );
                       },

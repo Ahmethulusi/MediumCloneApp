@@ -6,22 +6,19 @@ import '../main.dart';
 class AuthService {
   final String baseUrl = "http://localhost:8000/api/auth";
 
-  Future<bool> login(String email, String password) async {
+  Future<Map<String, dynamic>?> login(String email, String password) async {
     final response = await http.post(
-      Uri.parse("$baseUrl/login"),
+      Uri.parse('http://localhost:8000/api/auth/login'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"email": email, "password": password}),
     );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString("token", data["token"]);
-      await prefs.setString("userId", data["userId"]);
-      await prefs.setString("role", data["role"]);
-      return true;
+      return data; // 👈 Kullanıcı bilgileri dönüyoruz
+    } else {
+      return null;
     }
-    return false;
   }
 
   Future<bool> register(

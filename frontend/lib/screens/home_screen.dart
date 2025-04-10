@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'admin_panel.dart';
 import 'login_screen.dart';
 import 'library_screen.dart';
 import 'profile_screen.dart';
+import 'homepage.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userId;
@@ -15,12 +15,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String? userRole;
   int _selectedIndex = 0;
 
   List<Widget> _getScreens() {
     return [
-      Center(child: Text("Ana Sayfa İçeriği")),
+      HomePage(),
       LibraryScreen(userId: widget.userId),
       Text("Kaydedilenler"),
       ProfileScreen(userId: widget.userId),
@@ -28,16 +27,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onItemTapped(int index) {
-    if (userRole == "admin" && index == 4) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => AdminPanelScreen()),
-      );
-    } else {
-      setState(() {
-        _selectedIndex = index;
-      });
-    }
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   void _checkSession() async {
@@ -49,7 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
       int sessionDuration = 3600000; // 1 saat
 
       if (currentTime - sessionStartTime >= sessionDuration) {
-        // Oturum süresi doldu, çıkış yap
         await prefs.remove('userId');
         await prefs.remove('sessionStartTime');
 
@@ -64,15 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _checkSession(); // Sayfa yüklendiğinde oturumu kontrol et
-    _getUserRole();
-  }
-
-  Future<void> _getUserRole() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      userRole = prefs.getString("role");
-    });
+    _checkSession();
   }
 
   @override
@@ -90,12 +73,6 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.library_books), label: ""),
           BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: ""),
           BottomNavigationBarItem(icon: Icon(Icons.account_box), label: ""),
-
-          if (userRole == "admin")
-            BottomNavigationBarItem(
-              icon: Icon(Icons.admin_panel_settings),
-              label: "",
-            ),
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
