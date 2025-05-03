@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'user_list.dart';
 import 'login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'admin_reports_and_analytic.dart';
+import 'category_management_screen.dart';
 
 class AdminHomeScreen extends StatelessWidget {
   final String userId;
@@ -35,7 +37,7 @@ class AdminHomeScreen extends StatelessWidget {
           children: [
             ElevatedButton.icon(
               icon: Icon(Icons.people),
-              label: Text("Kullanıcı Listesi"),
+              label: Text("Kullanıcı Yönetimi"),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -45,11 +47,37 @@ class AdminHomeScreen extends StatelessWidget {
             ),
             SizedBox(height: 10),
             ElevatedButton.icon(
-              icon: Icon(Icons.article),
-              label: Text("Makaleleri Yönet"),
+              icon: Icon(Icons.category),
+              label: Text("Kategori Yönetimi"),
               onPressed: () {
-                // Makale yönetim ekranına git
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => CategoryManagementScreen()),
+                );
               },
+            ),
+            SizedBox(height: 10),
+            ElevatedButton.icon(
+              icon: Icon(Icons.analytics),
+              label: Text("Raporlar ve Analitik Sayfa"),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => AdminReportsScreen()),
+                );
+              },
+            ),
+            SizedBox(height: 10),
+            ElevatedButton.icon(
+              icon: Icon(Icons.report),
+              label: Text("Şikayetler ve Rapor Yönetimi"),
+              onPressed: () {},
+            ),
+            SizedBox(height: 10),
+            ElevatedButton.icon(
+              icon: Icon(Icons.palette),
+              label: Text("Görünüm ve Tema Yönetimi"),
+              onPressed: () {},
             ),
           ],
         ),

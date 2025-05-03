@@ -10,6 +10,7 @@ const userRoutes = require('./routes/users');
 const articleRoutes = require('./routes/articles');
 const categoryRoutes = require('./routes/categories');
 const authrouter = require('./routes/auth');
+const adminRouter = require('./routes/admin');
 
 
 
@@ -43,6 +44,7 @@ app.get('/',(req,res)=>{
 
 app.use('/api/articles',articleRoutes);
 app.use('/api/users',userRoutes);
+app.use('/api/admin',adminRouter);
 app.use('/api/categories',categoryRoutes);
 app.use('/api/auth',authrouter);
 

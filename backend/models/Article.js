@@ -1,13 +1,14 @@
 const mongoose = require('mongoose');
 
 class Article {
-  constructor(title, content,status, author, categories) {
+  constructor(title, content,status, author, categories,likes=[],readCount) {
     this.title = title;
     this.content = content;
     this.status = status;
     this.author = author;
     this.categories = categories || []; // Çoka-çok ilişki için kategori referansları
-    this.likes = 0;
+    this.likes = likes;
+    this.readCount = readCount || 0;
     this.createdAt = new Date();
   }
 
@@ -26,7 +27,8 @@ class Article {
         jobTitle: String
       },
       categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }], // Çoka-çok ilişki
-      likes: { type: Number, default: 0 },
+      likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+      readCount: { type: Number, default: 0 },
       createdAt: { type: Date, default: Date.now }
     });
   }

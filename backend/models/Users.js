@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 class User {
-  constructor(name, email, profileImage, password,role,bio,jobTitle) {
+  constructor(name, email, profileImage, password,role,bio,jobTitle,isBanned,isFrozen) {
     this.name = name;
     this.bio = bio;
     this.jobTitle = jobTitle
@@ -11,6 +11,8 @@ class User {
     this.profileImage = profileImage || "";
     this.role = role;
     this.createdAt = new Date();
+    this.isBanned = isBanned;
+    this.isFrozen = isFrozen;
   }
 
   static getSchema() {
@@ -29,6 +31,8 @@ class User {
       resetPasswordExpires: { type: Date, default: null },    //  Tokenin süresi
       jobTitle: { type: String, required: false },
       bio: { type: String, required: false },
+      isBanned: { type: Boolean, default: false },
+      isFrozen: { type: Boolean, default: false },
     });
   
     return schema;

@@ -31,11 +31,31 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (userData != null) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String userId = userData['userId']; // veya '_id'
-      String role = userData['role']; // 👈 Rolü doğrudan al
+      // 🚫 Eğer kullanıcı banlıysa uyarı ver ve çık
+      if (userData['isBanned'] == true) {
+        setState(() => _isLoading = false);
+        showDialog(
+          context: context,
+          builder:
+              (_) => AlertDialog(
+                title: Text("Hesabınız Banlandı"),
+                content: Text("Bu hesap yöneticiler tarafından banlanmıştır."),
+                actions: [
+                  TextButton(
+                    child: Text("Tamam"),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+        );
+        return;
+      }
 
-      // ✅ SharedPreferences'a kaydet
+      // Devamındaki kod aynı
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String userId = userData['userId'];
+      String role = userData['role'];
+
       await prefs.setString('userId', userId);
       await prefs.setString('role', role);
       await prefs.setInt(
@@ -43,24 +63,20 @@ class _LoginScreenState extends State<LoginScreen> {
         DateTime.now().millisecondsSinceEpoch,
       );
 
-      // ✅ Provider ile kullanıcı verilerini çek
       await Provider.of<UserProvider>(
         context,
         listen: false,
       ).fetchUserData(userId);
 
-      // ✅ Rol kontrolü ve yönlendirme
       if (role == 'admin') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (context) => AdminHomeScreen(userId: userId),
-          ),
+          MaterialPageRoute(builder: (_) => AdminHomeScreen(userId: userId)),
         );
       } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeScreen(userId: userId)),
+          MaterialPageRoute(builder: (_) => HomeScreen(userId: userId)),
         );
       }
     } else {

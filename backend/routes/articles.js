@@ -2,6 +2,7 @@ const express = require('express');
 const Article = require('../models/Article');
 const Users = require('../Models/Users');
 const Category = require('../Models/Category'); // Dosya yolunu kontrol edin ve doğru olduğundan emin olun
+const ReadLog = require('../models/ReadLog');
 const authMiddleware = require('../middlewares/authmiddleware'); 
 
 const router = express.Router();
@@ -76,5 +77,43 @@ router.get('/all', async (req, res) => {
     res.status(500).json({ message: "Sunucu hatası" });
   }
 });
+
+// routes/articles.js
+router.post('/increment-read/:articleId', async (req, res) => {
+  const { articleId } = req.params;
+
+  try {
+    await Article.findByIdAndUpdate(articleId, { $inc: { readCount: 1 } });
+
+    await ReadLog.create({
+      articleId,
+      userId: req.body.userId || null, // frontend gönderirse userId al
+    });
+
+    res.json({ message: 'Okunma sayısı artırıldı ve loglandı' });
+  } catch (err) {
+    console.error('Okunma log hatası:', err);
+    res.status(500).json({ message: 'Sunucu hatası' });
+  }
+});
+
+
+// routes/articles.js
+router.post('/like/:articleId', async (req, res) => {
+  const { userId } = req.body;
+  try {
+    const article = await Article.findById(req.params.articleId);
+    if (!article.likes.includes(userId)) {
+      article.likes.push(userId);
+    } else {
+      article.likes = article.likes.filter(id => id.toString() !== userId);
+    }
+    await article.save();
+    res.status(200).json({ message: "Like durumu güncellendi" });
+  } catch (error) {
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+});
+
 
 module.exports = router;

@@ -30,6 +30,7 @@ router.post('/login', async (req, res) => {
         email: user.email,
         profileImage: user.profileImage,
         role:user.role,
+        isBanned:user.isBanned,
         token
     });
 });
