@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
-import 'library_screen.dart';
 import 'profile_screen.dart';
+import 'notification_screen.dart';
 import 'homepage.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Widget> _getScreens() {
     return [
       HomePage(),
-      LibraryScreen(userId: widget.userId),
+      NotificationsScreen(userId: widget.userId),
       Text("Kaydedilenler"),
       ProfileScreen(userId: widget.userId),
     ];
@@ -70,7 +70,10 @@ class _HomeScreenState extends State<HomeScreen> {
         type: BottomNavigationBarType.fixed,
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.library_books), label: ""),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notification_add),
+            label: "",
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: ""),
           BottomNavigationBarItem(icon: Icon(Icons.account_box), label: ""),
         ],

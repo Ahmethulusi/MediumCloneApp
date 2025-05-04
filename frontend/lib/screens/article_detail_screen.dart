@@ -98,8 +98,10 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
             maxChildSize: 0.95,
             minChildSize: 0.5,
             builder:
-                (_, scrollController) =>
-                    CommentSheet(scrollController: scrollController),
+                (_, scrollController) => CommentSheet(
+                  scrollController: scrollController,
+                  articleId: widget.article['id'],
+                ),
           ),
     );
   }
@@ -191,10 +193,97 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
   }
 }
 
-class CommentSheet extends StatelessWidget {
+class CommentSheet extends StatefulWidget {
   final ScrollController scrollController;
+  final String articleId;
 
-  CommentSheet({required this.scrollController});
+  CommentSheet({required this.scrollController, required this.articleId});
+
+  @override
+  State<CommentSheet> createState() => _CommentSheetState();
+}
+
+class _CommentSheetState extends State<CommentSheet> {
+  List<dynamic> comments = [];
+  bool isLoading = true;
+  final TextEditingController _controller = TextEditingController();
+  String? userId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserAndComments();
+  }
+
+  Future<void> _loadUserAndComments() async {
+    final prefs = await SharedPreferences.getInstance();
+    final uid = prefs.getString('userId');
+
+    if (uid == null) {
+      print("⚠️ userId null: Giriş yapılmamış olabilir.");
+    }
+
+    setState(() {
+      userId = uid;
+    });
+
+    await _fetchComments();
+  }
+
+  Future<void> _fetchComments() async {
+    setState(() => isLoading = true);
+    try {
+      final response = await http.get(
+        Uri.parse(
+          "http://localhost:8000/api/articles/comment/${widget.articleId}",
+        ),
+      );
+
+      if (response.statusCode == 201) {
+        final data = json.decode(response.body);
+        // Eğer data null ise boş array'a çevir
+        setState(() {
+          comments = data ?? [];
+          isLoading = false;
+        });
+      } else {
+        print("❌ Yorumlar alınamadı: ${response.body}");
+        setState(() => isLoading = false);
+      }
+    } catch (e) {
+      print("❌ Yorum çekilirken hata oluştu: $e");
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _submitComment() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty || userId == null) {
+      print("⚠️ Yorum gönderilemedi: Kullanıcı yok veya metin boş.");
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse("http://localhost:8000/api/articles/post-comment"),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          "articleId": widget.articleId,
+          "userId": userId,
+          "text": text,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        _controller.clear();
+        await _fetchComments();
+      } else {
+        print("❌ Yorum gönderilemedi: ${response.body}");
+      }
+    } catch (e) {
+      print("❌ Yorum gönderme hatası: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -208,6 +297,7 @@ class CommentSheet extends StatelessWidget {
           ),
           SizedBox(height: 10),
           TextField(
+            controller: _controller,
             decoration: InputDecoration(
               hintText: "Yorumunuzu yazın...",
               border: OutlineInputBorder(),
@@ -215,21 +305,31 @@ class CommentSheet extends StatelessWidget {
             maxLines: 2,
           ),
           SizedBox(height: 10),
-          ElevatedButton(onPressed: () {}, child: Text("Gönder")),
+          ElevatedButton(onPressed: _submitComment, child: Text("Gönder")),
           SizedBox(height: 16),
-          Expanded(
-            child: ListView.builder(
-              controller: scrollController,
-              itemCount: 5,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  leading: CircleAvatar(child: Icon(Icons.person)),
-                  title: Text("Kullanıcı $index"),
-                  subtitle: Text("Bu makale çok faydalıydı!"),
-                );
-              },
-            ),
-          ),
+          isLoading
+              ? CircularProgressIndicator()
+              : Expanded(
+                child:
+                    comments.isEmpty
+                        ? Center(child: Text("Henüz yorum yapılmamış."))
+                        : ListView.builder(
+                          controller: widget.scrollController,
+                          itemCount: comments.length,
+                          itemBuilder: (context, index) {
+                            final c = comments[index];
+                            // Kullanıcı adı ve yorum metni için null kontrolü
+                            final author = c['userId']?['name'] ?? 'Bilinmeyen';
+                            final text = c['text'] ?? '';
+
+                            return ListTile(
+                              leading: CircleAvatar(child: Icon(Icons.person)),
+                              title: Text(author),
+                              subtitle: Text(text),
+                            );
+                          },
+                        ),
+              ),
         ],
       ),
     );

@@ -11,8 +11,9 @@ const articleRoutes = require('./routes/articles');
 const categoryRoutes = require('./routes/categories');
 const authrouter = require('./routes/auth');
 const adminRouter = require('./routes/admin');
-
-
+// const adminRouter = require('./routes/admin');
+const notificationRouter = require('./routes/notification');
+const reportsRouter = require("./routes/reports");
 
 const app = express();
 
@@ -47,6 +48,8 @@ app.use('/api/users',userRoutes);
 app.use('/api/admin',adminRouter);
 app.use('/api/categories',categoryRoutes);
 app.use('/api/auth',authrouter);
+app.use("/api/reports", reportsRouter);
+app.use("/api/notification", notificationRouter);
 
 
 app.listen(PORT,()=>{

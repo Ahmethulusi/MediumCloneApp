@@ -5,6 +5,7 @@ import 'login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'admin_reports_and_analytic.dart';
 import 'category_management_screen.dart';
+import 'admin_report_screen.dart';
 
 class AdminHomeScreen extends StatelessWidget {
   final String userId;
@@ -71,7 +72,14 @@ class AdminHomeScreen extends StatelessWidget {
             ElevatedButton.icon(
               icon: Icon(Icons.report),
               label: Text("Şikayetler ve Rapor Yönetimi"),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ComplaintManagementScreen(),
+                  ),
+                );
+              },
             ),
             SizedBox(height: 10),
             ElevatedButton.icon(

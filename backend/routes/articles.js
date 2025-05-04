@@ -3,6 +3,7 @@ const Article = require('../models/Article');
 const Users = require('../Models/Users');
 const Category = require('../Models/Category'); // Dosya yolunu kontrol edin ve doğru olduğundan emin olun
 const ReadLog = require('../models/ReadLog');
+const Comment = require('../models/Comment');
 const authMiddleware = require('../middlewares/authmiddleware'); 
 
 const router = express.Router();
@@ -114,6 +115,50 @@ router.post('/like/:articleId', async (req, res) => {
     res.status(500).json({ message: "Sunucu hatası" });
   }
 });
+
+router.post('/post-comment', async (req, res) => {
+  try {
+    const { articleId, userId, text } = req.body;
+
+    // Eksik alan kontrolü
+    if (!articleId || !userId || !text) {
+      return res.status(400).json({ message: "Tüm alanlar zorunludur." });
+    }
+
+    // Yeni yorum oluştur
+    const newComment = new Comment({
+      articleId,
+      userId,
+      text
+    });
+
+    await newComment.save();
+
+    res.status(201).json({
+      message: "Yorum başarıyla gönderildi.",
+      comment: newComment
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Sunucu hatası",
+      error: err.message
+    });
+  }
+});
+
+
+router.get('/comment/:articleId', async (req, res) => {
+  try {
+    const comments = await Comment.find({ articleId: req.params.articleId })
+      .populate('userId', 'name')
+      .sort({ createdAt: -1 });
+
+    res.json(comments);
+  } catch (err) {
+    res.status(500).json({ message: 'Yorumlar alınamadı', error: err.message });
+  }
+});
+
 
 
 module.exports = router;
