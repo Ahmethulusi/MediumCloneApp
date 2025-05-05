@@ -14,6 +14,9 @@ const adminRouter = require('./routes/admin');
 // const adminRouter = require('./routes/admin');
 const notificationRouter = require('./routes/notification');
 const reportsRouter = require("./routes/reports");
+const commentRouter = require("./routes/comment");
+
+
 
 const app = express();
 
@@ -50,6 +53,7 @@ app.use('/api/categories',categoryRoutes);
 app.use('/api/auth',authrouter);
 app.use("/api/reports", reportsRouter);
 app.use("/api/notification", notificationRouter);
+app.use("/api/comment", commentRouter);
 
 
 app.listen(PORT,()=>{
