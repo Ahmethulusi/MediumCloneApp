@@ -16,6 +16,10 @@ const notificationRouter = require('./routes/notification');
 const reportsRouter = require("./routes/reports");
 const commentRouter = require("./routes/comment");
 
+const uploadRoutes = require('./routes/uploads');
+
+// Görselleri sunmak için:
+
 
 
 const app = express();
@@ -54,6 +58,11 @@ app.use('/api/auth',authrouter);
 app.use("/api/reports", reportsRouter);
 app.use("/api/notification", notificationRouter);
 app.use("/api/comment", commentRouter);
+app.use('/api/uploads', uploadRoutes);
+app.use('/images', express.static('public/images'));
+
+
+
 
 
 app.listen(PORT,()=>{

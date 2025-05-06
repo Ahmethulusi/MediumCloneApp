@@ -4,27 +4,35 @@ const Users = require('../Models/Users');
 const Category = require('../Models/Category'); // Dosya yolunu kontrol edin ve doğru olduğundan emin olun
 const ReadLog = require('../models/ReadLog');
 const authMiddleware = require('../middlewares/authmiddleware'); 
-
 const router = express.Router();
+const { QuillDeltaToHtmlConverter } = require('quill-delta-to-html');
+
 
 // Yeni Makale Ekleme (Sadece Yazarlar ve Üstü)
 router.post('/newArticle', async (req, res) => {
-  const { title, content, authorId, status } = req.body;
+  const { title, content, authorId, status, categories,coverImage } = req.body;
 
   try {
     const author = await Users.findById(authorId);
     if (!author) return res.status(404).json({ message: "User not found" });
 
+    const deltaOps = JSON.parse(req.body.content);
+    const converter = new QuillDeltaToHtmlConverter(deltaOps, {});
+    const html = converter.convert();
+
     const newArticle = new Article({
       title,
-      content,
+      content: html, // ✅ Doğru alan adı bu!
+      status,
+      categories,
+      coverImage: coverImage || '',
       author: {
         _id: author._id,
         name: author.name,
         jobTitle: author.jobTitle,
       },
-      status, // published ya da draft
     });
+    
 
     await newArticle.save();
     res.status(201).json(newArticle);
@@ -32,6 +40,7 @@ router.post('/newArticle', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 router.get('/', async (req, res) => {
   try {

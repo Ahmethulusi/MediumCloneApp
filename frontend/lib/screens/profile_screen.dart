@@ -131,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => NewStoryScreen()),
+            MaterialPageRoute(builder: (context) => NewArticleFormScreen()),
           );
 
           if (result == 'refresh') {

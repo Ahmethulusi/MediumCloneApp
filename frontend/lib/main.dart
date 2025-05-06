@@ -5,6 +5,8 @@ import 'providers/user_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/admin_home_screen.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +42,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: [
+        ...GlobalMaterialLocalizations.delegates,
+        quill.FlutterQuillLocalizations.delegate, // 🔥 EKLENDİ
+      ],
+      supportedLocales: const [
+        Locale('tr'), // veya Locale('en')
+      ],
       home:
           userId != null
               ? (userRole == "admin"

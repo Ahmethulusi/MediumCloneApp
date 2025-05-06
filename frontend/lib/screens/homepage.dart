@@ -10,13 +10,28 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  Map<String, String> categoryMap = {}; // ID → İsim
+
   List<dynamic> articles = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _fetchCategories();
     fetchArticles();
+  }
+
+  Future<void> _fetchCategories() async {
+    final response = await http.get(
+      Uri.parse('http://localhost:8000/api/categories'),
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body) as List;
+      setState(() {
+        categoryMap = {for (var cat in data) cat['_id']: cat['name']};
+      });
+    }
   }
 
   Future<void> fetchArticles() async {
@@ -141,7 +156,8 @@ class _HomePageState extends State<HomePage> {
                   return Stack(
                     children: [
                       SizedBox(
-                        height: 180,
+                        width: double.infinity,
+                        height: 250, // 🔼 Kart yüksekliği artırıldı
                         child: Card(
                           margin: EdgeInsets.only(bottom: 12),
                           shape: RoundedRectangleBorder(
@@ -160,42 +176,63 @@ class _HomePageState extends State<HomePage> {
                               );
                             },
                             child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Row(
+                              padding: EdgeInsets.all(12),
+                              child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // 🧾 İçerik kısmı
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          article['title'] ?? 'Başlık yok',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        SizedBox(height: 6),
-                                        Text(
-                                          "Yazar: ${article['author']?['name'] ?? 'Anonim'}",
-                                          style: TextStyle(
-                                            color: Colors.grey[700],
-                                          ),
-                                        ),
-                                        SizedBox(height: 10),
-                                        Text(
-                                          formatContent(
-                                            article['content'] ?? "",
-                                          ),
-                                          style: TextStyle(fontSize: 15),
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 3,
-                                        ),
-                                      ],
+                                  // 🧑 Yazar adı
+                                  Text(
+                                    article['author']?['name'] ?? 'Anonim',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey[700],
                                     ),
                                   ),
+                                  SizedBox(height: 4),
+
+                                  // 📝 Makale başlığı
+                                  Text(
+                                    article['title'] ?? 'Başlık yok',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+
+                                  // 🏷️ Kategoriler
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: -8,
+                                    children: List<Widget>.from(
+                                      (article['categories'] ?? []).map<Widget>(
+                                        (id) {
+                                          final name =
+                                              categoryMap[id] ?? 'Kategori';
+                                          return Chip(
+                                            label: Text(name),
+                                            backgroundColor: Colors.grey[200],
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+
+                                  SizedBox(height: 10),
+
+                                  // 🖼️ Görsel
+                                  if (article['coverImage'] != null &&
+                                      article['coverImage'].isNotEmpty)
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        "http://localhost:8000${article['coverImage']}",
+                                        width: double.infinity,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),
