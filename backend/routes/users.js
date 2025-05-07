@@ -1,5 +1,6 @@
 const express = require('express');
 const User = require('../Models/Users');
+const Article = require('../models/Article');
 const multer = require('multer');
 const path = require('path');
 const router = express.Router();
@@ -107,7 +108,92 @@ router.post('/upload-profile-image', upload.single('profileImage'), async (req, 
     }
 });
 
+// :id -> takip edilecek kullanıcının ID'si
+router.post('/:id/follow', async (req, res) => {
+    const currentUserId = req.body.userId;
+    const targetUserId = req.params.id;
+  
+    if (currentUserId === targetUserId) {
+      return res.status(400).json({ message: "Kendinizi takip edemezsiniz." });
+    }
+  
+    try {
+      const currentUser = await User.findById(currentUserId);
+      const targetUser = await User.findById(targetUserId);
+  
+      if (!currentUser || !targetUser) {
+        return res.status(404).json({ message: "Kullanıcı bulunamadı." });
+      }
+  
+      const isFollowing = currentUser.following.includes(targetUserId);
+  
+      if (isFollowing) {
+        // Takibi bırak
+        currentUser.following.pull(targetUserId);
+        targetUser.followers.pull(currentUserId);
+      } else {
+        // Takip et
+        currentUser.following.push(targetUserId);
+        targetUser.followers.push(currentUserId);
+      }
+  
+      await currentUser.save();
+      await targetUser.save();
+  
+      res.status(200).json({
+        message: isFollowing ? "Takipten çıkarıldı." : "Takip edildi.",
+      });
+    } catch (err) {
+      res.status(500).json({ message: "Sunucu hatası", error: err.message });
+    }
+  });
+  
+  // :id -> kullanıcı ID'si
+router.post('/:id/save-article', async (req, res) => {
+  const { articleId } = req.body;
+  const userId = req.params.id;
 
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı." });
+
+    const alreadySaved = user.savedArticles.includes(articleId);
+
+    if (alreadySaved) {
+      user.savedArticles.pull(articleId);
+    } else {
+      user.savedArticles.push(articleId);
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      message: alreadySaved ? "Makaleden çıkarıldı." : "Makale kaydedildi.",
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Sunucu hatası", error: err.message });
+  }
+});
+
+router.get('/:userId/saved-articles', async (req, res) => {
+    try {
+      const userId = req.params.userId;
+  
+      const user = await User.findById(userId).populate({
+        path: 'savedArticles',
+        populate: { path: 'author', select: 'name jobTitle' }, // yazar bilgisi de gelsin
+      });
+  
+      if (!user) {
+        return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      }
+  
+      res.json({ savedArticles: user.savedArticles || [] });
+    } catch (err) {
+      console.error("❌ Hata:", err);
+      res.status(500).json({ message: "Sunucu hatası", error: err.message });
+    }
+  });
   
 
 

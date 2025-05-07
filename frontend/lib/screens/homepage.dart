@@ -10,48 +10,39 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  Map<String, String> categoryMap = {}; // ID → İsim
-
   List<dynamic> articles = [];
+  List<Map<String, dynamic>> categories = [];
+  Map<String, String> categoryMap = {};
   bool isLoading = true;
+  String selectedCategoryId = 'all';
 
   @override
   void initState() {
     super.initState();
     _fetchCategories();
-    fetchArticles();
   }
 
   Future<void> _fetchCategories() async {
-    final response = await http.get(
-      Uri.parse('http://localhost:8000/api/categories'),
-    );
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body) as List;
-      setState(() {
-        categoryMap = {for (var cat in data) cat['_id']: cat['name']};
-      });
-    }
-  }
-
-  Future<void> fetchArticles() async {
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:8000/api/articles/explore/random'),
+        Uri.parse('http://localhost:8000/api/categories'),
       );
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = json.decode(response.body) as List;
+
         setState(() {
-          articles = data['articles'] ?? [];
-          isLoading = false;
+          categories = [
+            {'_id': 'all', 'name': 'Tümü'},
+            ...data.where((c) => c['parent'] == null).toList(),
+          ];
+
+          categoryMap = {for (var cat in data) cat['_id']: cat['name']};
+
+          fetchArticles();
         });
-      } else {
-        print("❌ Makaleler alınamadı: ${response.body}");
-        setState(() => isLoading = false);
       }
     } catch (e) {
-      print("🚨 Hata oluştu: $e");
-      setState(() => isLoading = false);
+      print("❌ Kategori çekilemedi: $e");
     }
   }
 
@@ -118,140 +109,196 @@ class _HomePageState extends State<HomePage> {
         body: jsonEncode({"articleId": articleId, "reason": reason}),
       );
 
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Şikayet gönderildi ✅")));
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Şikayet gönderilemedi ❌")));
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            response.statusCode == 200
+                ? "Şikayet gönderildi ✅"
+                : "Şikayet gönderilemedi ❌",
+          ),
+        ),
+      );
     } catch (e) {
       print("🚨 Şikayet gönderme hatası: $e");
     }
   }
 
-  String formatContent(String content) {
-    final plainText = content.replaceAll(RegExp(r'<[^>]*>'), '');
-    return plainText.length > 100
-        ? plainText.substring(0, 100) + '...'
-        : plainText;
+  Future<void> fetchArticles() async {
+    setState(() => isLoading = true);
+
+    String url =
+        selectedCategoryId == 'all'
+            ? 'http://localhost:8000/api/articles/explore/random'
+            : 'http://localhost:8000/api/articles/byCategory/$selectedCategoryId';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          articles = data['articles'] ?? [];
+          isLoading = false;
+        });
+      } else {
+        print("❌ Makaleler alınamadı: ${response.body}");
+        setState(() => isLoading = false);
+      }
+    } catch (e) {
+      print("🚨 Hata oluştu: $e");
+      setState(() => isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Anasayfa")),
-      body:
-          isLoading
-              ? Center(child: CircularProgressIndicator())
-              : ListView.builder(
-                padding: EdgeInsets.all(12),
-                itemCount: articles.length,
-                itemBuilder: (context, index) {
-                  final article = articles[index];
-                  final contentText = formatContent(article['content'] ?? "");
+      body: Column(
+        children: [
+          // 🟦 Kategori Tabları
+          SizedBox(
+            height: 50,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                children:
+                    categories.map((cat) {
+                      final isSelected = cat['_id'] == selectedCategoryId;
 
-                  return Stack(
-                    children: [
-                      SizedBox(
-                        width: double.infinity,
-                        height: 250, // 🔼 Kart yüksekliği artırıldı
-                        child: Card(
-                          margin: EdgeInsets.only(bottom: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 4,
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (_) =>
-                                          ArticleDetailScreen(article: article),
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: ChoiceChip(
+                          label: Text(cat['name']),
+                          selected: isSelected,
+                          onSelected: (_) {
+                            setState(() {
+                              selectedCategoryId = cat['_id'];
+                              fetchArticles();
+                            });
+                          },
+                        ),
+                      );
+                    }).toList(),
+              ),
+            ),
+          ),
+          // 📃 Makale Listesi
+          Expanded(
+            child:
+                isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : articles.isEmpty
+                    ? Center(child: Text("Gösterilecek makale yok."))
+                    : ListView.builder(
+                      padding: EdgeInsets.all(12),
+                      itemCount: articles.length,
+                      itemBuilder: (context, index) {
+                        final article = articles[index];
+
+                        return Stack(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              child: Card(
+                                color: Color(0xFFF9F9F9),
+                                margin: EdgeInsets.symmetric(vertical: 10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
-                              );
-                            },
-                            child: Padding(
-                              padding: EdgeInsets.all(12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // 🧑 Yazar adı
-                                  Text(
-                                    article['author']?['name'] ?? 'Anonim',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.grey[700],
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-
-                                  // 📝 Makale başlığı
-                                  Text(
-                                    article['title'] ?? 'Başlık yok',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-
-                                  // 🏷️ Kategoriler
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: -8,
-                                    children: List<Widget>.from(
-                                      (article['categories'] ?? []).map<Widget>(
-                                        (id) {
-                                          final name =
-                                              categoryMap[id] ?? 'Kategori';
-                                          return Chip(
-                                            label: Text(name),
-                                            backgroundColor: Colors.grey[200],
-                                          );
-                                        },
+                                elevation: 4,
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (_) => ArticleDetailScreen(
+                                              article: article,
+                                            ),
                                       ),
+                                    );
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          article['author']?['name'] ??
+                                              'Anonim',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          article['title'] ?? '',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        Wrap(
+                                          spacing: 8,
+                                          runSpacing: -8,
+                                          children: List<Widget>.from(
+                                            (article['categories'] ?? [])
+                                                .map<Widget>((id) {
+                                                  final name =
+                                                      categoryMap[id] ??
+                                                      'Kategori';
+                                                  return Chip(
+                                                    label: Text(name),
+                                                    backgroundColor:
+                                                        Colors.grey[200],
+                                                  );
+                                                }),
+                                          ),
+                                        ),
+                                        SizedBox(height: 10),
+                                        if (article['coverImage'] != null &&
+                                            article['coverImage'].isNotEmpty)
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            child: Image.network(
+                                              "http://localhost:8000${article['coverImage']}",
+                                              width: double.infinity,
+                                              height: 200,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   ),
-
-                                  SizedBox(height: 10),
-
-                                  // 🖼️ Görsel
-                                  if (article['coverImage'] != null &&
-                                      article['coverImage'].isNotEmpty)
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        "http://localhost:8000${article['coverImage']}",
-                                        width: double.infinity,
-                                        height: 100,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                ],
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: IconButton(
-                          icon: Icon(Icons.report_gmailerrorred),
-                          onPressed:
-                              () => _showReportDrawer(context, article['_id']),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
+                            // 🚩 Şikayet Butonu
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: IconButton(
+                                icon: Icon(Icons.report_gmailerrorred),
+                                onPressed:
+                                    () => _showReportDrawer(
+                                      context,
+                                      article['_id'],
+                                    ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+          ),
+        ],
+      ),
     );
   }
 }

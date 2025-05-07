@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 class User {
-  constructor(name, email, profileImage, password,role,bio,jobTitle,isBanned,isFrozen) {
+  constructor(name, email, profileImage, password,role,bio,jobTitle,isBanned,isFrozen,followers,following,
+    savedArticles
+  ) {
     this.name = name;
     this.bio = bio;
     this.jobTitle = jobTitle
@@ -13,6 +15,9 @@ class User {
     this.createdAt = new Date();
     this.isBanned = isBanned;
     this.isFrozen = isFrozen;
+    this.followers = followers || [];
+    this.following= following || [];
+    this.savedArticles = savedArticles || [];
   }
 
   static getSchema() {
@@ -23,20 +28,28 @@ class User {
       profileImage: { type: String, default: "" },
       role: { 
         type: String, 
-        enum: [ "author", "editor", "admin"], 
+        enum: ["author", "editor", "admin"], 
         default: "author"
       },
       createdAt: { type: Date, default: Date.now },
-      resetPasswordToken: { type: String, default: null },  // Şifre sıfırlama tokeni
-      resetPasswordExpires: { type: Date, default: null },    //  Tokenin süresi
+      resetPasswordToken: { type: String, default: null },
+      resetPasswordExpires: { type: Date, default: null },
       jobTitle: { type: String, required: false },
       bio: { type: String, required: false },
       isBanned: { type: Boolean, default: false },
       isFrozen: { type: Boolean, default: false },
+  
+      // 🔁 Takip sistemi
+      followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+      following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  
+      // 📚 Kaydedilen makaleler
+      savedArticles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Article' }],
     });
   
     return schema;
   }
+  
 
   static getModel() {
     return mongoose.models.User || mongoose.model('User', this.getSchema());

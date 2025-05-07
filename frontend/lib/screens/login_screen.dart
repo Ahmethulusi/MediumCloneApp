@@ -79,7 +79,19 @@ class _LoginScreenState extends State<LoginScreen> {
           MaterialPageRoute(builder: (_) => HomeScreen(userId: userId)),
         );
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(" Başarıyla Giriş Yapıldı!"),
+          backgroundColor: Colors.green,
+        ),
+      );
     } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(" Giriş Başarısız!"),
+          backgroundColor: Colors.red,
+        ),
+      );
       print("❌ Giriş başarısız!");
     }
 

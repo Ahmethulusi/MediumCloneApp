@@ -18,6 +18,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
   String userRole = 'author';
   String? userId;
   bool isLiked = false;
+  bool isSaved = false;
 
   @override
   void initState() {
@@ -82,6 +83,42 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
         }
         widget.article['likes'] = likes;
       });
+    }
+  }
+
+  Future<void> _toggleSaveArticle() async {
+    if (userId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Giriş yapmanız gerekiyor.")));
+      return;
+    }
+
+    final articleId = widget.article['_id'];
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:8000/api/users/$userId/save-article'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({"articleId": articleId}),
+      );
+
+      if (response.statusCode == 200) {
+        final message = json.decode(response.body)['message'];
+        setState(() {
+          isSaved = !isSaved;
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+
+        // UI'de güncelleme yapmak istersen burada flag değiştirebilirsin.
+        // Örnek: setState(() => isSaved = !isSaved);
+      } else {
+        print("❌ Kaydetme hatası: ${response.body}");
+      }
+    } catch (e) {
+      print("🚨 Sunucuya bağlanırken hata oluştu: $e");
     }
   }
 
@@ -180,9 +217,13 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                       onPressed: _toggleLike,
                     ),
                     IconButton(
-                      icon: Icon(Icons.bookmark_border),
-                      onPressed: () {}, // TODO: Kaydetme işlemi
+                      icon: Icon(
+                        isSaved ? Icons.bookmark_border : Icons.bookmark,
+                        color: isSaved ? Colors.black : null,
+                      ),
+                      onPressed: _toggleSaveArticle,
                     ),
+
                     IconButton(
                       icon: Icon(Icons.comment),
                       onPressed: _openCommentsDrawer,

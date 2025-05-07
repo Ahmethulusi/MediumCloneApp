@@ -4,6 +4,7 @@ import 'login_screen.dart';
 import 'profile_screen.dart';
 import 'notification_screen.dart';
 import 'homepage.dart';
+import 'saved_articles.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userId;
@@ -21,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return [
       HomePage(),
       NotificationsScreen(userId: widget.userId),
-      Text("Kaydedilenler"),
+      SavedArticlesScreen(userId: widget.userId),
       ProfileScreen(userId: widget.userId),
     ];
   }

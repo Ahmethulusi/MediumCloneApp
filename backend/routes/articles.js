@@ -5,7 +5,7 @@ const Category = require('../Models/Category'); // Dosya yolunu kontrol edin ve 
 const ReadLog = require('../models/ReadLog');
 const authMiddleware = require('../middlewares/authmiddleware'); 
 const router = express.Router();
-const { QuillDeltaToHtmlConverter } = require('quill-delta-to-html');
+const { convertHtmlToDelta,convertDeltaToHtml } = require('node-quill-converter');
 
 
 // Yeni Makale Ekleme (Sadece Yazarlar ve Üstü)
@@ -16,9 +16,9 @@ router.post('/newArticle', async (req, res) => {
     const author = await Users.findById(authorId);
     if (!author) return res.status(404).json({ message: "User not found" });
 
-    const deltaOps = JSON.parse(req.body.content);
-    const converter = new QuillDeltaToHtmlConverter(deltaOps, {});
-    const html = converter.convert();
+    const deltaOps = JSON.parse(content);
+
+    const html = convertDeltaToHtml(deltaOps);
 
     const newArticle = new Article({
       title,
@@ -124,7 +124,83 @@ router.post('/like/:articleId', async (req, res) => {
   }
 });
 
+router.get('/byCategory/:categoryId', async (req, res) => {
+  const categoryId = req.params.categoryId;
 
+  try {
+    const articles = await Article.find({
+      categories: categoryId,
+      status: 'public'
+    })
+      .sort({ createdAt: -1 });
+
+    res.json({ articles });
+  } catch (err) {
+    console.error("❌ Kategoriye göre makaleler alınamadı:", err);
+    res.status(500).json({ message: "Kategoriye göre makaleler alınamadı", error: err.message });
+  }
+});
+
+
+
+router.put('/:id/update', async (req, res) => { 
+  const { title, content, coverImage, categories } = req.body;
+
+  try {
+    const article = await Article.findById(req.params.id);
+    if (!article) return res.status(404).json({ message: "Makale bulunamadı." });
+
+    article.title = title || article.title;
+    // article.content = JSON.stringify(content); // Delta içeriği string olarak kaydet
+
+    // Delta'dan HTML üret (opsiyonel ama iyi olur)
+    const deltaContent = content;
+    const html = convertDeltaToHtml(deltaContent);
+    article.html = html;
+
+    article.coverImage = coverImage || article.coverImage;
+    article.categories = categories || article.categories;
+
+    await article.save();
+
+    res.status(200).json({ message: "Makale güncellendi.", article });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+router.get('/:id/content-delta', async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id).select('content');
+    if (!article) {
+      return res.status(404).json({ message: 'Makale bulunamadı' });
+    }
+
+    const htmlContent = article.content || '';
+    const delta = convertHtmlToDelta(htmlContent);
+
+    res.json({ delta });
+  } catch (err) {
+    console.error("💥 Dönüştürme hatası:", err);
+    res.status(500).json({ message: 'Sunucu hatası', error: err.message });
+  }
+});
+
+router.delete('/:id/delete', async (req, res) => {
+  try {
+    const article = await Article.deleteOne(req.params.id)
+    if (!article) {
+      return res.status(404).json({ message: 'Makale bulunamadı' });
+    }
+
+    await article.save();
+    
+  } catch (err) {
+    console.error("💥 Dönüştürme hatası:", err);
+    res.status(500).json({ message: 'Sunucu hatası', error: err.message });
+  }
+});
 
 
 
