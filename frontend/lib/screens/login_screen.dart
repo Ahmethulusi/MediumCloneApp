@@ -9,6 +9,7 @@ import 'forgot_password.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
 import 'admin_home_screen.dart';
+import 'interest_selection_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -74,10 +75,17 @@ class _LoginScreenState extends State<LoginScreen> {
           MaterialPageRoute(builder: (_) => AdminHomeScreen(userId: userId)),
         );
       } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => HomeScreen(userId: userId)),
-        );
+        if (userData['showInterestScreen'] == true) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => InterestSelectionScreen()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => HomeScreen(userId: userId)),
+          );
+        }
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

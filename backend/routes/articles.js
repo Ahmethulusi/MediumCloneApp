@@ -203,5 +203,41 @@ router.delete('/:id/delete', async (req, res) => {
 });
 
 
+// GET /api/articles/byPreferredCategories/:userId
+router.get('/byPreferredCategories/:userId', async (req, res) => {
+  const userId = req.params.userId;
+  try {
+    const user = await Users.findById(userId);
+    if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
+
+    const articles = await Article.find({
+      categories: { $in: user.preferredCategories },
+      status: 'public'
+    }).sort({ createdAt: -1 });
+
+    res.json({ articles });
+  } catch (err) {
+    res.status(500).json({ message: 'Sunucu hatası', error: err.message });
+  }
+});
+
+// GET /api/articles/byFollowing/:userId
+router.get('/byFollowing/:userId', async (req, res) => {
+  const userId = req.params.userId;
+  try {
+    const user = await Users.findById(userId);
+    if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
+
+    const articles = await Article.find({
+      'author._id': { $in: user.following },
+      status: 'public'
+    }).sort({ createdAt: -1 });
+
+    res.json({ articles });
+  } catch (err) {
+    res.status(500).json({ message: 'Sunucu hatası', error: err.message });
+  }
+});
+
 
 module.exports = router;

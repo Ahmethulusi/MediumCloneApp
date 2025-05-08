@@ -18,7 +18,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
   String userRole = 'author';
   String? userId;
   bool isLiked = false;
-  bool isSaved = false;
+  bool isSaved = true;
 
   @override
   void initState() {

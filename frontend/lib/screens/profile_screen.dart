@@ -6,6 +6,7 @@ import '../components/edit_profile.dart';
 import 'login_screen.dart';
 import 'edit_story_screen.dart';
 import '../components/new_story.dart';
+import '../components/profile_about_tab.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -264,8 +265,8 @@ class _TabBarViewSectionState extends State<TabBarViewSection> {
                       },
                     ),
 
-                Center(child: Text("No lists available")),
-                Center(child: Text("About the user")),
+                Center(child: Text("Lists")),
+                UserProfileHeader(),
               ],
             ),
           ),

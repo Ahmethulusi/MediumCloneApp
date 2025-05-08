@@ -195,6 +195,31 @@ router.get('/:userId/saved-articles', async (req, res) => {
     }
   });
   
+  // [PUT] /api/users/:id/preferences
+  router.patch('/:id/interests', async (req, res) => {
+    const userId = req.params.id;
+    const selectedCategories = req.body.interests; // kategori id listesi
+  
+    try {
+      const user = await User.findByIdAndUpdate(
+        userId,
+        {
+          preferredCategories: selectedCategories,
+          showInterestScreen: false, // ✅ artık bu ekran bir daha gösterilmez
+        },
+        { new: true }
+      );
+  
+      if (!user) return res.status(404).json({ message: 'User not found' });
+  
+      res.json({ message: 'İlgi alanları kaydedildi', user });
+    } catch (err) {
+      res.status(500).json({ message: 'Sunucu hatası', error: err.message });
+    }
+  });
+  
+
+
 
 
 module.exports = router;

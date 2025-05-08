@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 
 class User {
   constructor(name, email, profileImage, password,role,bio,jobTitle,isBanned,isFrozen,followers,following,
-    savedArticles
+    savedArticles, preferredCategories,showInterestScreen
   ) {
     this.name = name;
     this.bio = bio;
@@ -18,6 +18,8 @@ class User {
     this.followers = followers || [];
     this.following= following || [];
     this.savedArticles = savedArticles || [];
+    this.preferredCategories = preferredCategories || [];
+    this.showInterestScreen = showInterestScreen || true;
   }
 
   static getSchema() {
@@ -45,6 +47,9 @@ class User {
   
       // 📚 Kaydedilen makaleler
       savedArticles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Article' }],
+      preferredCategories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
+      showInterestScreen: { type: Boolean, default: true }
+
     });
   
     return schema;

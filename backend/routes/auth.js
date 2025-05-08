@@ -31,7 +31,9 @@ router.post('/login', async (req, res) => {
         profileImage: user.profileImage,
         role:user.role,
         isBanned:user.isBanned,
+        showInterestScreen:user.showInterestScreen,
         token
+
     });
 });
 
@@ -46,12 +48,13 @@ router.post('/register',async(req,res)=>{
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password,salt);
 
-        const newUser = new User({
+        const newUser = new User({  
             name,
             email,
             password: hashedPassword,
             profileImage:"",
             role: role || "author",
+            showInterestScreen:true,
         });
 
         await newUser.save();
