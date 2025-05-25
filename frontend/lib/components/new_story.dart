@@ -52,7 +52,7 @@ class _NewArticleFormScreenState extends State<NewArticleFormScreen> {
     }
   }
 
-  void _goToEditorScreen() {
+  void _goToEditorScreen() async {
     if (_titleController.text.trim().isEmpty ||
         _coverImage == null ||
         selectedCategoryIds.isEmpty) {
@@ -71,19 +71,23 @@ class _NewArticleFormScreenState extends State<NewArticleFormScreen> {
     print("📷 Görsel: ${_coverImage!.path}");
     print("🏷️ Kategoriler: $selectedCategoryIds");
 
-    Navigator.push(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder:
             (_) => ArticleEditorScreen(
               arguments: {
-                'title': _titleController.text.trim(),
-                'coverImage': _coverImage, // File nesnesi
-                'categories': selectedCategoryIds, // List<String>
+                "title": _titleController.text.trim(),
+                "coverImage": _coverImage,
+                "categories": selectedCategoryIds,
               },
             ),
       ),
     );
+
+    if (result == 'refresh') {
+      Navigator.pop(context, 'refresh'); // B ➡️ A
+    }
   }
 
   @override

@@ -29,6 +29,7 @@ router.post('/newArticle', async (req, res) => {
         _id: author._id,
         name: author.name,
         jobTitle: author.jobTitle,
+        profileImage:author.profileImage,
       },
     });
     await newArticle.save();
@@ -111,11 +112,14 @@ router.post('/like/:articleId', async (req, res) => {
     const article = await Article.findById(req.params.articleId);
     if (!article.likes.includes(userId)) {
       article.likes.push(userId);
+      await article.save();
+    res.status(200).json({ message:"Beğenildi ✅",});
     } else {
+      await article.save();
+    res.status(200).json({ message: "Like durumu güncellendi" });
       article.likes = article.likes.filter(id => id.toString() !== userId);
     }
-    await article.save();
-    res.status(200).json({ message: "Like durumu güncellendi" });
+    
   } catch (error) {
     res.status(500).json({ message: "Sunucu hatası" });
   }
@@ -138,6 +142,20 @@ router.get('/byCategory/:categoryId', async (req, res) => {
   }
 });
 
+router.delete('/:id/delete', async (req, res) => {
+  try {
+    const result = await Article.deleteOne({ _id: req.params.id });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'Makale bulunamadı' });
+    }
+
+    return res.status(200).json({ message: 'Makale başarıyla silindi' });
+  } catch (err) {
+    console.error("💥 Silme hatası:", err);
+    res.status(500).json({ message: 'Sunucu hatası', error: err.message });
+  }
+});
 
 
 router.put('/:id/update', async (req, res) => { 
@@ -184,20 +202,6 @@ router.get('/:id/content-delta', async (req, res) => {
   }
 });
 
-router.delete('/:id/delete', async (req, res) => {
-  try {
-    const article = await Article.deleteOne(req.params.id)
-    if (!article) {
-      return res.status(404).json({ message: 'Makale bulunamadı' });
-    }
-
-    await article.save();
-    
-  } catch (err) {
-    console.error("💥 Dönüştürme hatası:", err);
-    res.status(500).json({ message: 'Sunucu hatası', error: err.message });
-  }
-});
 
 
 // GET /api/articles/byPreferredCategories/:userId

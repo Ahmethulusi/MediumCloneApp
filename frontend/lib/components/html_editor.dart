@@ -104,7 +104,7 @@ class _ArticleEditorScreenState extends State<ArticleEditorScreen> {
         ),
       );
 
-      Navigator.popUntil(context, (route) => route.isFirst);
+      Navigator.pop(context, 'refresh'); // C ➡️ B
     } else {
       print("❌ Makale gönderilemedi: ${response.body}");
 

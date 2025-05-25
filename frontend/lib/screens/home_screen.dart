@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 import 'profile_screen.dart';
@@ -57,6 +60,49 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _checkSession();
+    Future.microtask(() => _checkAdminMessages(widget.userId));
+  }
+
+  Future<void> _checkAdminMessages(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://localhost:8000/api/admin/messages/unread/$userId'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final messages = data['messages'];
+
+        if (messages != null && messages.isNotEmpty) {
+          final firstMsg = messages[0];
+          await _showAdminMessageModal(firstMsg['content']);
+          await http.patch(
+            Uri.parse(
+              'http://localhost:8000/api/admin/messages/mark-read/${firstMsg['_id']}',
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('❌ Mesaj kontrol hatası: $e');
+    }
+  }
+
+  Future<void> _showAdminMessageModal(String message) async {
+    await showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text("📬 Admin Mesajı"),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("Tamam"),
+              ),
+            ],
+          ),
+    );
   }
 
   @override

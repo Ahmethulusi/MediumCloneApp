@@ -58,7 +58,7 @@ router.post('/register',async(req,res)=>{
         });
 
         await newUser.save();
-        res.json({message:"Kullanici basariyla olusturuldu",user:newUser});
+        res.status(201).json({message:"Kullanici basariyla olusturuldu",user:newUser});
 
     }catch(error){
         res.status(500).json({error:error.message});

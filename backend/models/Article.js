@@ -26,7 +26,8 @@ class Article {
       author: {
         _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         name: String,
-        jobTitle: String
+        jobTitle: String,
+        profileImage: String
       },
       categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
       likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

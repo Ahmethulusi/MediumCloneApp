@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'reports/statistics.dart';
 
-import 'reports/daily_reading_stats.dart';
+import 'reports/top_article_stats.dart';
 
 class AdminReportsScreen extends StatelessWidget {
   const AdminReportsScreen({super.key});
@@ -22,15 +22,15 @@ class AdminReportsScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => AdminStatisticsScreen()),
                 ),
           ),
-          _buildTile(
-            icon: Icons.people,
-            title: "Grafikler İstatistikler",
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => TopReadArticlesScreen()),
-                ),
-          ),
+          // _buildTile(
+          //   icon: Icons.people,
+          //   title: "Grafikler İstatistikler",
+          //   onTap:
+          //       () => Navigator.push(
+          //         context,
+          //         MaterialPageRoute(builder: (_) => TopReadArticlesScreen()),
+          //       ),
+          // ),
         ],
       ),
     );

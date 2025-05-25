@@ -15,8 +15,9 @@ const adminRouter = require('./routes/admin');
 const notificationRouter = require('./routes/notification');
 const reportsRouter = require("./routes/reports");
 const commentRouter = require("./routes/comment");
-
+const themeRouter = require("./routes/themes");
 const uploadRoutes = require('./routes/uploads');
+
 
 // Görselleri sunmak için:
 
@@ -60,6 +61,8 @@ app.use("/api/reports", reportsRouter);
 app.use("/api/notification", notificationRouter);
 app.use("/api/comment", commentRouter);
 app.use('/api/uploads', uploadRoutes);
+app.use('/api/themes', themeRouter);
+
 app.use('/images', express.static('public/images'));
 
 

@@ -10,6 +10,7 @@ import 'home_screen.dart';
 import 'register_screen.dart';
 import 'admin_home_screen.dart';
 import 'interest_selection_screen.dart';
+import '../theme/app_theme.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -33,6 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (userData != null) {
       if (userData['isBanned'] == true) {
+        if (!mounted) return;
         setState(() => _isLoading = false);
         showDialog(
           context: context,
@@ -50,6 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         return;
       }
+
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String userId = userData['userId'];
       String role = userData['role'];
@@ -58,16 +61,27 @@ class _LoginScreenState extends State<LoginScreen> {
       await prefs.setString('userId', userId);
       await prefs.setString('role', role);
       await prefs.setString("token", token);
-
       await prefs.setInt(
         'sessionStartTime',
         DateTime.now().millisecondsSinceEpoch,
       );
 
+      if (!mounted) return;
+
       await Provider.of<UserProvider>(
         context,
         listen: false,
       ).fetchUserData(userId);
+
+      if (!mounted) return;
+
+      final themeProvider = Provider.of<AppThemeProvider>(
+        context,
+        listen: false,
+      );
+      await themeProvider.loadUserTheme(userId); // 🎯 tema yükleniyor
+
+      if (!mounted) return;
 
       if (role == 'admin') {
         Navigator.pushReplacement(
@@ -87,6 +101,8 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         }
       }
+
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(" Başarıyla Giriş Yapıldı!"),
@@ -94,6 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(" Giriş Başarısız!"),
@@ -103,9 +120,11 @@ class _LoginScreenState extends State<LoginScreen> {
       print("❌ Giriş başarısız!");
     }
 
-    setState(() {
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -113,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(title: Text("Giriş Yap")),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(50.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -132,16 +151,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 ? CircularProgressIndicator()
                 : ElevatedButton(onPressed: _login, child: Text("Giriş Yap")),
             SizedBox(height: 10),
-            TextButton(
+            ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => RegisterScreen()),
                 );
               },
-              child: Text("Hesabın yok mu? Kayıt ol"),
+
+              child: Text("Kayıt ol"),
             ),
-            TextButton(
+
+            SizedBox(height: 10),
+
+            ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
@@ -150,7 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 );
               },
-              child: Text("Şifremi Unuttum"),
+              child: Text("Şifremi \nUnuttum"),
             ),
           ],
         ),

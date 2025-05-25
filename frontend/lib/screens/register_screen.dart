@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:frontend/screens/login_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -30,17 +31,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
 
     if (success) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? userId = prefs.getString("userId");
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(" Başarıyla Kayıt Yapıldı!"),
+          backgroundColor: Colors.green,
+        ),
+      );
 
-      if (userId != null) {
-        Provider.of<UserProvider>(context, listen: false).fetchUserData(userId);
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomeScreen(userId: userId)),
-        );
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
     } else {
       print("❌ Kayıt başarısız!");
     }

@@ -3,26 +3,74 @@ const User = require("../Models/Users");
 const router = express.Router();
 const Article = require("../models/Article");
 const ReadLog = require('../models/ReadLog');
+const Comment = require('../models/Comment');
+const Message = require('../models/Messages');
+
 
 // ✅ Kullanıcıya Mesaj Gönder
 router.post('/message', async (req, res) => {
-    const { userId, message } = req.body;
-  
-    if (!userId || !message) {
-      return res.status(400).json({ message: "Eksik bilgi" });
-    }
-  
+  const { userId, message } = req.body;
+
+  if (!userId || !message) {
+    return res.status(400).json({ message: "Eksik bilgi" });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+
+    // Örnek olarak sabit bir admin ID kullanalım (oturum yönetimi yoksa)
+    const adminId = "67ce249230f3cf4d1f3ac178"; // kendi admin ID'nle değiştir
+
+    const newMessage = new Message({
+      sender: adminId,
+      receiver: userId,
+      content: message,
+    });
+
+    await newMessage.save();
+
+    res.status(200).json({ message: "Mesaj gönderildi" });
+  } catch (err) {
+    res.status(500).json({ message: "Sunucu hatası", error: err.message });
+  }
+});
+
+// bütün mesajları getir (test için)
+router.get('/messages', async (req, res) => {
     try {
-      // İsterseniz DB'ye kaydedebilirsiniz
-      console.log(`📩 Admin'den kullanıcıya mesaj: ${userId} - ${message}`);
-  
-      // TODO: Email gönderme, notification, vs.
-      res.status(200).json({ message: "Mesaj başarıyla gönderildi" });
-    } catch (err) {
-      console.error("Mesaj gönderme hatası:", err);
-      res.status(500).json({ message: "Sunucu hatası" });
+        const messages = await Message.find();
+        res.json(messages);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-  });
+});
+
+// [PATCH] /api/messages/mark-read/:messageId
+router.patch('/messages/mark-read/:messageId', async (req, res) => {
+  try {
+    await Message.findByIdAndUpdate(req.params.messageId, { isRead: true });
+    res.status(200).json({ message: 'Mesaj okundu olarak işaretlendi' });
+  } catch (err) {
+    res.status(500).json({ message: 'İşaretleme hatası', error: err.message });
+  }
+});
+
+// [GET] /api/messages/unread/:userId
+router.get('/messages/unread/:userId', async (req, res) => {
+
+  try {
+    const messages = await Message.find({
+      receiver: req.params.userId,
+      isRead: false,
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json({ messages });
+  } catch (err) {
+    res.status(500).json({ message: 'Hata oluştu', error: err.message });
+  }
+});
+
 
 
 // ✅ Banla
@@ -49,11 +97,9 @@ router.post("/action/unban", async (req, res) => {
 });
 
 
-
 // ✅ Dondur
 router.post("/action/freeze", async (req, res) => {
   const { userId } = req.body;
-
   try {
     await User.findByIdAndUpdate(userId, { isFrozen: true });
     res.json({ message: "Hesap donduruldu" });
@@ -61,6 +107,7 @@ router.post("/action/freeze", async (req, res) => {
     res.status(500).json({ message: "Dondurma işlemi başarısız" });
   }
 });
+
 
 // ✅ Hesap Sil
 router.delete("/action/delete/:userId", async (req, res) => {
@@ -107,16 +154,21 @@ router.get('/stats/articles-count', async (req, res) => {
   res.json({ totalArticles: count });
 });
 
-router.get('/stats/top-articles', async (req, res) => {
+router.get('/top-articles/:userId', async (req, res) => {
+  const userId = req.params.userId;
+
   try {
-    const articles = await Article.find({ status: 'public' })
+    const articles = await Article.find({ 
+        status: 'public',
+        'author._id': userId
+      })
       .sort({ readCount: -1 }) // okunma sayısına göre sırala
       .limit(10)
-      .populate('author', 'name'); // sadece yazarın ismini getir
+      .populate('author', 'name'); // sadece yazar ismi
 
     res.status(200).json({ articles });
   } catch (err) {
-    console.error(" Hata:", err);
+    console.error("Hata:", err);
     res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
@@ -157,41 +209,78 @@ router.get('/statistics', async (req, res) => {
   }
 });
 
-// router.get('/statistics/daily-reads', async (req, res) => {
-//   const start = new Date();
-//   start.setDate(start.getDate() - 6); // son 7 gün
 
-//   const data = await ReadLog.aggregate([
-//     { $match: { readAt: { $gte: start } } },
-//     {
-//       $group: {
-//         _id: { $dateToString: { format: "%Y-%m-%d", date: "$readAt" } },
-//         count: { $sum: 1 }
-//       }
-//     },
-//     { $sort: { _id: 1 } }
-//   ]);
 
-//   res.json(data);
-// });
+// [GET] /api/admin/stats/top-liked/:userId
+router.get('/top-liked/:userId', async (req, res) => {
+  try {
+    const articles = await Article.find({ "author._id": req.params.userId })
+      .sort({ likes: -1 }) // MongoDB'de array uzunluğuna göre sıralama
+      .limit(10);
 
-// router.get('/statistics/monthly-reads', async (req, res) => {
-//   const start = new Date();
-//   start.setMonth(start.getMonth() - 5); // son 6 ay
+    res.status(200).json({ articles });
+  } catch (err) {
+    res.status(500).json({ message: 'Veri alınamadı', error: err.message });
+  }
+});
 
-//   const data = await ReadLog.aggregate([
-//     { $match: { readAt: { $gte: start } } },
-//     {
-//       $group: {
-//         _id: { $dateToString: { format: "%Y-%m", date: "$readAt" } },
-//         count: { $sum: 1 }
-//       }
-//     },
-//     { $sort: { _id: 1 } }
-//   ]);
 
-//   res.json(data);
-// });
+// [GET] /api/admin/stats/top-saved/:userId
+router.get('/top-saved/:userId', async (req, res) => {
+  try {
+    const users = await User.find({ savedArticles: { $exists: true, $ne: [] } });
+
+    // Tüm makaleId'leri say
+    const articleCountMap = {};
+
+    users.forEach(user => {
+      user.savedArticles.forEach(articleId => {
+        articleCountMap[articleId] = (articleCountMap[articleId] || 0) + 1;
+      });
+    });
+
+    // Bu kullanıcıya ait makaleleri filtrele
+    const articles = await Article.find({ "author._id": req.params.userId });
+
+    const result = articles
+      .map(article => ({
+        ...article.toObject(),
+        saveCount: articleCountMap[article._id] || 0,
+      }))
+      .sort((a, b) => b.saveCount - a.saveCount)
+      .slice(0, 10);
+
+    res.status(200).json({ articles: result });
+  } catch (err) {
+    res.status(500).json({ message: 'Veri alınamadı', error: err.message });
+  }
+});
+
+// [GET] /api/admin/stats/top-commented/:userId
+router.get('/top-commented/:userId', async (req, res) => {
+  try {
+    const articles = await Article.find({ "author._id": req.params.userId });
+
+    const commentCounts = await Promise.all(
+      articles.map(async (article) => {
+        const count = await Comment.countDocuments({ articleId: article._id });
+        return { article, commentCount: count };
+      })
+    );
+
+    const sorted = commentCounts
+      .sort((a, b) => b.commentCount - a.commentCount)
+      .slice(0, 10)
+      .map(item => ({
+        ...item.article.toObject(),
+        commentCount: item.commentCount
+      }));
+
+    res.status(200).json({ articles: sorted });
+  } catch (err) {
+    res.status(500).json({ message: 'Veri alınamadı', error: err.message });
+  }
+});
 
 
  

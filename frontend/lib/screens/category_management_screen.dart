@@ -46,7 +46,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                   .toList();
 
           return ExpansionTile(
-            title: Text(mainCat['name']),
+            title: Text(mainCat['name'], style: TextStyle(color: Colors.white)),
             children:
                 subCats.map((subCat) {
                   return Padding(
@@ -54,7 +54,10 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                       left: 32.0,
                     ), // 🔽 Alt kategori padding
                     child: ListTile(
-                      title: Text(subCat['name']),
+                      title: Text(
+                        subCat['name'],
+                        style: TextStyle(color: Colors.white),
+                      ),
                       leading: Icon(Icons.subdirectory_arrow_right, size: 18),
                     ),
                   );

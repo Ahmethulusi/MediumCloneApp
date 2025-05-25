@@ -4,6 +4,9 @@ import 'dart:convert';
 import '../article_detail_screen.dart'; // detay ekranına yönlendirme için
 
 class TopReadArticlesScreen extends StatefulWidget {
+  final String userId;
+  TopReadArticlesScreen({required this.userId});
+
   @override
   _TopReadArticlesScreenState createState() => _TopReadArticlesScreenState();
 }
@@ -21,7 +24,9 @@ class _TopReadArticlesScreenState extends State<TopReadArticlesScreen> {
   Future<void> fetchTopArticles() async {
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:8000/api/admin/stats/top-articles'),
+        Uri.parse(
+          'http://localhost:8000/api/admin/stats/top-articles/${widget.userId}',
+        ),
       );
 
       if (response.statusCode == 200) {
@@ -43,7 +48,6 @@ class _TopReadArticlesScreenState extends State<TopReadArticlesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("📈 En Çok Okunan Makaleler")),
       body:
           _isLoading
               ? Center(child: CircularProgressIndicator())

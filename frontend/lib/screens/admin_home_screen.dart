@@ -6,6 +6,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'admin_reports_and_analytic.dart';
 import 'category_management_screen.dart';
 import 'admin_report_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend/theme/app_theme.dart';
+import 'admin_theme_list.dart';
+import 'reports/statistics.dart';
+// import '../providers/user_provider.dart';
 
 class AdminHomeScreen extends StatelessWidget {
   final String userId;
@@ -23,7 +28,12 @@ class AdminHomeScreen extends StatelessWidget {
             onPressed: () async {
               SharedPreferences prefs = await SharedPreferences.getInstance();
               await prefs.remove('userId');
+              final themeProvider = Provider.of<AppThemeProvider>(
+                context,
+                listen: false,
+              );
 
+              themeProvider.setThemeForAuth();
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => LoginScreen()),
@@ -37,6 +47,15 @@ class AdminHomeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(
+                  255,
+                  171,
+                  25,
+                  25,
+                ), // Butonun arka plan rengi
+                foregroundColor: Colors.white, // Yazı (ön plan) rengi
+              ),
               icon: Icon(Icons.people),
               label: Text("Kullanıcı Yönetimi"),
               onPressed: () {
@@ -48,6 +67,15 @@ class AdminHomeScreen extends StatelessWidget {
             ),
             SizedBox(height: 10),
             ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(
+                  255,
+                  171,
+                  25,
+                  25,
+                ), // Butonun arka plan rengi
+                foregroundColor: Colors.white, // Yazı (ön plan) rengi
+              ),
               icon: Icon(Icons.category),
               label: Text("Kategori Yönetimi"),
               onPressed: () {
@@ -59,17 +87,35 @@ class AdminHomeScreen extends StatelessWidget {
             ),
             SizedBox(height: 10),
             ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(
+                  255,
+                  171,
+                  25,
+                  25,
+                ), // Butonun arka plan rengi
+                foregroundColor: Colors.white, // Yazı (ön plan) rengi
+              ),
               icon: Icon(Icons.analytics),
               label: Text("Raporlar ve Analitik Sayfa"),
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => AdminReportsScreen()),
+                  MaterialPageRoute(builder: (_) => AdminStatisticsScreen()),
                 );
               },
             ),
             SizedBox(height: 10),
             ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(
+                  255,
+                  171,
+                  25,
+                  25,
+                ), // Butonun arka plan rengi
+                foregroundColor: Colors.white, // Yazı (ön plan) rengi
+              ),
               icon: Icon(Icons.report),
               label: Text("Şikayetler ve Rapor Yönetimi"),
               onPressed: () {
@@ -83,9 +129,23 @@ class AdminHomeScreen extends StatelessWidget {
             ),
             SizedBox(height: 10),
             ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(
+                  255,
+                  171,
+                  25,
+                  25,
+                ), // Butonun arka plan rengi
+                foregroundColor: Colors.white, // Yazı (ön plan) rengi
+              ),
               icon: Icon(Icons.palette),
               label: Text("Görünüm ve Tema Yönetimi"),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ThemeListScreen()),
+                );
+              },
             ),
           ],
         ),

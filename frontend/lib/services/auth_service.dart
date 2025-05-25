@@ -39,10 +39,6 @@ class AuthService {
     );
 
     if (response.statusCode == 201) {
-      final data = json.decode(response.body);
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString("userId", data["userId"]);
-      await prefs.setString("role", data["role"]);
       return true;
     }
     return false;

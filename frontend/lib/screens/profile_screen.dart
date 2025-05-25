@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/user_provider.dart';
@@ -9,6 +10,9 @@ import '../components/new_story.dart';
 import '../components/profile_about_tab.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'theme_settings.dart';
+import 'reports/top_read_article.dart';
+import 'reports/top_article_stats.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -20,14 +24,33 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  int followerCount = 0;
+  int followingCount = 0;
+
   @override
   void initState() {
+    super.initState();
     Future.microtask(() {
       Provider.of<UserProvider>(
         context,
         listen: false,
       ).fetchUserStories(widget.userId);
+      _fetchFollowerStats();
     });
+  }
+
+  Future<void> _fetchFollowerStats() async {
+    final response = await http.get(
+      Uri.parse('http://localhost:8000/api/users/${widget.userId}/stats'),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        followerCount = data['followers'] ?? 0;
+        followingCount = data['following'] ?? 0;
+      });
+    }
   }
 
   @override
@@ -38,9 +61,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         actions: [
           IconButton(
-            icon: Icon(Icons.settings),
+            icon: Icon(Icons.color_lens_sharp),
             onPressed: () {
-              // Ayarlar ekranına yönlendirme
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ThemeSettingsScreen()),
+              );
             },
           ),
           IconButton(
@@ -48,10 +74,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () async {
               SharedPreferences prefs = await SharedPreferences.getInstance();
               await prefs.remove('userId');
+              final themeProvider = Provider.of<AppThemeProvider>(
+                context,
+                listen: false,
+              );
+
+              themeProvider
+                  .setThemeForAuth(); // çıkış sonrası login ekranına dönerken
 
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
+                MaterialPageRoute(builder: (_) => LoginScreen()),
               );
             },
           ),
@@ -60,90 +93,83 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body:
           userProvider.isLoading
               ? Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+              : Column(
+                children: [
+                  SizedBox(height: 16),
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundImage:
+                        userProvider.profileImage.isNotEmpty
+                            ? NetworkImage(userProvider.profileImage)
+                            : AssetImage('assets/default_avatar.png')
+                                as ImageProvider,
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    userProvider.name,
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    "$followerCount Takipçi • $followingCount Takip",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundImage:
-                            userProvider.profileImage.isNotEmpty
-                                ? NetworkImage(userProvider.profileImage)
-                                : AssetImage('assets/default_avatar.png')
-                                    as ImageProvider,
-                        onBackgroundImageError: (_, __) {
-                          print(
-                            "❌ Profil resmi yüklenemedi: ${userProvider.profileImage}",
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => TopStatsScreen(userId: widget.userId),
+                            ),
                           );
                         },
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        userProvider.name,
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                        ),
+                        child: Text(
+                          "İstatistikler",
+                          style: TextStyle(color: Colors.white),
                         ),
                       ),
-                      Text(
-                        "0 Followers • 1 Following",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                      SizedBox(height: 15),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black,
+                      SizedBox(width: 10),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) =>
+                                      EditProfileScreen(userId: widget.userId),
                             ),
-                            child: Text(
-                              "View stats",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          OutlinedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) => EditProfileScreen(
-                                        userId: widget.userId,
-                                      ),
-                                ),
-                              );
-                            },
-                            child: Text("Edit your profile"),
-                          ),
-                        ],
+                          );
+                        },
+                        child: Text("Profilini Düzenle"),
                       ),
-                      SizedBox(height: 20),
-                      TabBarViewSection(userId: widget.userId),
                     ],
                   ),
-                ),
+                  SizedBox(height: 20),
+                  Expanded(child: TabBarViewSection(userId: widget.userId)),
+                ],
               ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => NewArticleFormScreen()),
+            MaterialPageRoute(builder: (_) => NewArticleFormScreen()),
           );
 
           if (result == 'refresh') {
-            Provider.of<UserProvider>(
+            await Provider.of<UserProvider>(
               context,
               listen: false,
             ).fetchUserStories(widget.userId);
+            setState(() {});
           }
         },
-
-        backgroundColor: Colors.green,
         child: Icon(Icons.edit),
       ),
     );
@@ -169,18 +195,12 @@ class _TabBarViewSectionState extends State<TabBarViewSection> {
   }
 
   Future<void> _fetchUserStories() async {
-    setState(() {
-      isLoading = true;
-    });
-
+    setState(() => isLoading = true);
     await Provider.of<UserProvider>(
       context,
       listen: false,
     ).fetchUserStories(widget.userId);
-
-    setState(() {
-      isLoading = false;
-    });
+    setState(() => isLoading = false);
   }
 
   @override
@@ -192,22 +212,22 @@ class _TabBarViewSectionState extends State<TabBarViewSection> {
       child: Column(
         children: [
           TabBar(
+            unselectedLabelColor: Colors.black45,
             labelColor: Colors.black,
             indicatorColor: Colors.black,
             tabs: [
-              Tab(text: "Stories"),
-              Tab(text: "Lists"),
-              Tab(text: "About"),
+              Tab(text: "İçerikler"),
+              Tab(text: "Listeler"),
+              Tab(text: "Hakkımda"),
             ],
           ),
-          Container(
-            height: 300,
+          Expanded(
             child: TabBarView(
               children: [
                 isLoading
                     ? Center(child: CircularProgressIndicator())
                     : userProvider.publicStories.isEmpty
-                    ? Center(child: Text("No published stories"))
+                    ? Center(child: Text("Henüz bir içerik mevcut değil !"))
                     : ListView.builder(
                       itemCount: userProvider.publicStories.length,
                       itemBuilder: (context, index) {
@@ -217,18 +237,25 @@ class _TabBarViewSectionState extends State<TabBarViewSection> {
                           RegExp(r'<[^>]*>'),
                           '',
                         );
-
                         return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            final result = await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder:
-                                    (context) =>
-                                        EditStoryScreen(articleData: story),
+                                    (_) => EditStoryScreen(articleData: story),
                               ),
                             );
+
+                            if (result == 'updated' || result == 'deleted') {
+                              // 🔁 Listeyi güncellemek için:
+                              await userProvider.fetchUserStories(
+                                widget.userId,
+                              ); // Bu metot senin Provider'da olmalı
+                              setState(() {}); // ekranı yeniden çiz
+                            }
                           },
+
                           child: Card(
                             elevation: 3,
                             margin: EdgeInsets.symmetric(
@@ -239,7 +266,7 @@ class _TabBarViewSectionState extends State<TabBarViewSection> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Padding(
-                              padding: const EdgeInsets.all(16.0),
+                              padding: const EdgeInsets.all(20.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -264,9 +291,8 @@ class _TabBarViewSectionState extends State<TabBarViewSection> {
                         );
                       },
                     ),
-
-                Center(child: Text("Lists")),
-                UserProfileHeader(),
+                Center(child: Text("Listeler")),
+                SingleChildScrollView(child: UserProfileHeader()),
               ],
             ),
           ),

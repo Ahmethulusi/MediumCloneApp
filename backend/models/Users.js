@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 
 class User {
   constructor(name, email, profileImage, password,role,bio,jobTitle,isBanned,isFrozen,followers,following,
-    savedArticles, preferredCategories,showInterestScreen
+    savedArticles, preferredCategories,showInterestScreen,themeId
   ) {
     this.name = name;
     this.bio = bio;
@@ -20,6 +20,7 @@ class User {
     this.savedArticles = savedArticles || [];
     this.preferredCategories = preferredCategories || [];
     this.showInterestScreen = showInterestScreen || true;
+    this.themeId = themeId;
   }
 
   static getSchema() {
@@ -48,7 +49,11 @@ class User {
       // 📚 Kaydedilen makaleler
       savedArticles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Article' }],
       preferredCategories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
-      showInterestScreen: { type: Boolean, default: true }
+      showInterestScreen: { type: Boolean, default: true },
+
+      // models/UserModel.js (içine eklenecek alan)
+      themeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Theme', default: null },
+
 
     });
   

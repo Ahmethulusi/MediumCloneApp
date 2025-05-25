@@ -43,6 +43,7 @@ dependencies:
   fl_chart: ^0.60.0
   dropdown_search: ^5.0.6
   flutter_quill: ^11.4.0 
+  flutter_colorpicker: ^1.0.3
 
   
 dev_dependencies:
@@ -61,7 +62,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
+  assets:
+    - assets/default_avatar.png
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

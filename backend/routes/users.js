@@ -219,6 +219,119 @@ router.get('/:userId/saved-articles', async (req, res) => {
   });
   
 
+  // [GET] /api/users/:id/interests
+  router.get('/:userId/followed-categories', async (req, res) => {
+    const userId = req.params.userId;
+
+    try {
+      const user = await User.findById(userId).populate('preferredCategories');
+      if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
+
+      res.json(user.preferredCategories); // sadece ilgilendiği kategorileri döner
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+router.post('/:id/follow-category', async (req, res) => {
+  const { categoryId } = req.body;
+
+  try {
+    const user = await User.findById(req.params.id); // ✅ düzeltildi
+    if (!user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+
+    if (!user.preferredCategories.includes(categoryId)) {
+      user.preferredCategories.push(categoryId);
+      await user.save();
+    }
+
+    res.json({ message: 'Kategori takip edildi' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+router.post('/:id/unfollow-category', async (req, res) => {
+  const { categoryId } = req.body;
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { $pull: { preferredCategories: categoryId } },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+
+    res.json({ message: 'Kategori takibi bırakıldı' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// [GET] /api/users/suggestions?userId=...
+router.get('/suggestions/:userId', async (req, res) => {
+
+  const userId = req.params.userId;
+
+  try {
+    if (!userId) return res.status(400).json({ error: "userId gerekli" });
+
+    const users = await User.find({
+      _id: { $ne: userId }, // kendisi hariç
+      isBanned: false,      // banlı kullanıcıları gösterme
+    })
+    .select('_id name jobTitle profileImage'); // sadece gerekli alanlar
+
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/users/:id/stats
+router.get('/:id/stats', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+
+    res.json({
+      followers: user.followers.length,
+      following: user.following.length,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

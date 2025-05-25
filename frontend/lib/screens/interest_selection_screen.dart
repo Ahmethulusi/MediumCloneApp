@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
+import 'suggested_users_screen.dart';
 
 class InterestSelectionScreen extends StatefulWidget {
   @override
@@ -62,7 +63,9 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
     if (response.statusCode == 200) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => HomeScreen(userId: userId)),
+        MaterialPageRoute(
+          builder: (_) => SuggestedFollowsScreen(userId: userId),
+        ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
