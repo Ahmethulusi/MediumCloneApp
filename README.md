@@ -1,6 +1,14 @@
-# 📖 Medium Clone
 
-Medium benzeri bir makale okuma ve paylaşma platformu. Flutter kullanılarak geliştirilmiştir.
+<h1 align="center">📰 MediumCloneApp</h1>
+<p align="center"><i>A clean and powerful Medium.com clone with Flutter, Node.js, and MongoDB</i></p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-3.19-blue.svg" />
+  <img src="https://img.shields.io/badge/Node.js-Express-green.svg" />
+  <img src="https://img.shields.io/badge/MongoDB-Database-brightgreen.svg" />
+  <img src="https://img.shields.io/badge/JWT-Auth-yellow.svg" />
+</p>
+
 
 ## 🚀 Proje Hakkında
 Bu proje, kullanıcıların makale okuyup paylaşabileceği, kişisel profillerini yönetebileceği bir platform sunar. Uygulama Flutter ile geliştirilmiş olup, arka planda Node.js ve MongoDB kullanmaktadır.
