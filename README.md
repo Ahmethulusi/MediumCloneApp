@@ -240,7 +240,7 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICE
 
 ## 👥 Geliştirici
 
-[Geliştirici Adı] - [email@example.com]
+Ahmet Hulusi Yumuk - ahmet.h.yumuk@gmail.com
 
 ## 🙏 Teşekkürler
 
